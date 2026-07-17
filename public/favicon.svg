@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The identity at 16px: ultramarine field, bone M, ember status dot.
+       Same three tones as the site, in the same roles. -->
+  <rect width="64" height="64" fill="#111a54"/>
+  <path d="M12 48V16h7.5l12.5 20 12.5-20H52v32h-7V29.5L32.5 48h-1L19 29.5V48z" fill="#ede9dd"/>
+  <circle cx="52" cy="14" r="5" fill="#ff5a1f"/>
+</svg>

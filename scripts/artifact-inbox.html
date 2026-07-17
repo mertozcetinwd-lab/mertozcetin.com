@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inbox → ClickUp</title>
+<style>
+  :root{
+    --bg:#0f1013; --panel:#16181d; --panel-2:#12141a; --line:#262a33;
+    --ink:#eef1f6; --dim:#9aa2b1; --faint:#646b7a;
+    --accent:#6ea8fe; --green:#57c98a; --amber:#e6b45a; --red:#e5817f; --purp:#a99bff;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .win{width:1300px;height:1040px;display:grid;grid-template-columns:1fr 1fr}
+  .pane{padding:0;overflow:hidden;border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .pane:last-child{border-right:0}
+  .head{display:flex;align-items:center;gap:10px;padding:18px 26px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+  .head .tag{font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+  .head .who{font-weight:600;font-size:17px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+  .in{padding:30px 30px;flex:1;display:flex;flex-direction:column;justify-content:center}
+
+  /* email */
+  .subj{font-size:19px;font-weight:600;margin-bottom:4px}
+  .from{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:18px}
+  .sec{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin:20px 0 10px;font-weight:600}
+  .sec.g{color:var(--green)}.sec.d{color:var(--faint)}
+  .item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .item .b{color:var(--ink)}
+  .item .m{color:var(--dim);font-size:13px}
+  .pri{font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:4px;border:1px solid var(--line);color:var(--dim);white-space:nowrap;align-self:flex-start;margin-top:2px}
+  .pri.u{color:var(--red);border-color:var(--red)}
+  .pri.h{color:var(--amber);border-color:var(--amber)}
+  .fold{color:var(--faint);font-size:13px;font-family:var(--mono);padding:9px 0}
+
+  /* clickup */
+  .cu .head{background:var(--panel)}
+  .space{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:2px}
+  .listname{font-size:18px;font-weight:600;margin-bottom:16px}
+  .task{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .box{width:18px;height:18px;border:1.6px solid var(--faint);border-radius:5px;flex:none;margin-top:1px}
+  .flag{font-size:14px;flex:none;margin-top:1px}
+  .flag.u{color:var(--red)}.flag.h{color:var(--amber)}.flag.n{color:var(--accent)}.flag.l{color:var(--faint)}
+  .tk .t{font-weight:500}
+  .tk .meta{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:3px;letter-spacing:.04em}
+  .due{color:var(--amber)}
+  .foot{font-family:var(--mono);font-size:12px;color:var(--faint);margin-top:18px}
+</style>
+</head>
+<body>
+<div class="win">
+  <!-- digest email -->
+  <div class="pane">
+    <div class="head"><span class="tag">GMAIL · DIGEST</span></div>
+    <div class="in">
+      <div class="subj">Inbox digest — 2026-07-08</div>
+      <div class="from">to mert · 14 unread → 3 need a reply, 7 folded as noise</div>
+
+      <div class="sec g">Needs a reply · 3</div>
+      <div class="item"><span class="pri u">URGENT</span><div><div class="b">Onboarding automation — scoping call?</div><div class="m">warm lead · wants a quote for client intake flow</div></div></div>
+      <div class="item"><span class="pri h">HIGH</span><div><div class="b">AI automation role — next steps</div><div class="m">recruiter · availability for a short intro this week</div></div></div>
+      <div class="item"><span class="pri h">HIGH</span><div><div class="b">Stripe — confirm payout details</div><div class="m">account · verify bank before first payout clears</div></div></div>
+
+      <div class="sec">FYI · 4</div>
+      <div class="item"><div><div class="b">ClickUp — 2 tasks due today</div><div class="m">reminder</div></div></div>
+      <div class="item"><div><div class="b">Anthropic — new model + pricing notes</div><div class="m">newsletter · skim</div></div></div>
+      <div class="item"><div><div class="b">Domain renewal in 21 days</div><div class="m">no action yet</div></div></div>
+
+      <div class="sec d">Noise → cleanup · 7</div>
+      <div class="fold">promos, digests, and notifications — folded into one "clear inbox" task, not seven.</div>
+    </div>
+  </div>
+
+  <!-- clickup list -->
+  <div class="pane cu">
+    <div class="head"><span class="dot"></span><span class="who">Inbox To-Do Lists</span></div>
+    <div class="in">
+      <div class="space">SPACE · Inbox To-Do Lists</div>
+      <div class="listname">2026-07-08 — 4 tasks</div>
+
+      <div class="task"><span class="box"></span><span class="flag u">⚑</span><div class="tk"><div class="t">Reply to lead re: onboarding automation quote</div><div class="meta">URGENT · due <span class="due">Jul 9</span> · from warm lead</div></div></div>
+      <div class="task"><span class="box"></span><span class="flag h">⚑</span><div class="tk"><div class="t">Send availability for AI role intro call</div><div class="meta">HIGH · due <span class="due">Jul 9</span> · from recruiter</div></div></div>
+      <div class="task"><span class="box"></span><span class="flag h">⚑</span><div class="tk"><div class="t">Verify Stripe bank + confirm payout</div><div class="meta">HIGH · due <span class="due">Jul 10</span> · from Stripe</div></div></div>
+      <div class="task"><span class="box"></span><span class="flag l">⚑</span><div class="tk"><div class="t">Clear inbox — 7 newsletters / notifications</div><div class="meta">LOW · no due date · folded noise</div></div></div>
+
+      <div class="foot">$ python scripts/inbox-to-clickup.py tasks.json → list created ✓</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

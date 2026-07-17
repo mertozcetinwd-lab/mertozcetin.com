@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Daily Research Agent</title>
+<!--
+  Composed from phase3-automations:
+  src/trigger/daily-research.ts  — scheduled trigger.dev task
+  src/lib/{firecrawl,anthropic,google-sheets,retry,env}.ts
+  Chain: Firecrawl (crawl) → Claude (read + condense) → Google Sheets (append).
+  Sheets auth is OAuth (git log: moved off service account).
+-->
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161920; --panel2:#12141a; --line:#272b35;
+    --ink:#eef1f6; --dim:#98a1b2; --faint:#616a7a;
+    --green:#4ec98a; --amber:#e6b45a; --violet:#a99bff; --accent:#6ea8fe;
+    --sheet:#ffffff; --sheet-ink:#1f2328; --sheet-line:#dfe3e8; --sheet-head:#f1f3f5;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+  .win{width:1300px;height:1040px;display:flex;flex-direction:column;overflow:hidden}
+
+  .bar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .bar .t{font-weight:600}
+  .bar .cron{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint);
+             border:1px solid var(--line);border-radius:5px;padding:3px 9px}
+
+  .chain{display:flex;align-items:stretch;gap:0;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .step{flex:1;padding:16px 22px;border-right:1px solid var(--line);position:relative}
+  .step:last-child{border-right:0}
+  .step .n{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+  .step .s{font-weight:600;margin-top:5px;font-size:14px}
+  .step .d{font-family:var(--mono);font-size:10px;color:var(--dim);margin-top:4px}
+  .step .ok{position:absolute;top:16px;right:20px;font-family:var(--mono);font-size:11px;color:var(--green)}
+  .step .ms{font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:7px}
+
+  .body{flex:1;display:grid;grid-template-columns:0.9fr 1.1fr;min-height:0}
+  .col{padding:22px 24px;overflow:hidden}
+  .col.left{border-right:1px solid var(--line)}
+  .h{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+
+  .log{font-family:var(--mono);font-size:11.5px;line-height:1.85}
+  .log .ts{color:var(--faint)}
+  .log .lv{color:var(--accent)}
+  .log .g{color:var(--green)}
+  .log .a{color:var(--amber)}
+  .log .v{color:var(--violet)}
+  .log .m{color:var(--dim)}
+
+  .sheet{background:var(--sheet);color:var(--sheet-ink);border-radius:7px;overflow:hidden;border:1px solid var(--sheet-line)}
+  .shead{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--sheet-line);background:var(--sheet-head)}
+  .shead .nm{font-size:12px;font-weight:600}
+  .shead .tab{margin-left:auto;font-family:var(--mono);font-size:10px;color:#5f6672}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th{background:var(--sheet-head);color:#5f6672;font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;
+     text-align:left;padding:7px 9px;border-bottom:1px solid var(--sheet-line);font-weight:500}
+  td{padding:8px 9px;border-bottom:1px solid var(--sheet-line);vertical-align:top;line-height:1.45}
+  td.d{font-family:var(--mono);color:#5f6672;white-space:nowrap}
+  td.src{color:#2f6f4f}
+  tr.new td{background:#f2f9f5}
+  .rowno{width:26px;color:#9aa0aa;font-family:var(--mono);font-size:9px;text-align:right;background:var(--sheet-head)}
+
+  .foot{border-top:1px solid var(--line);padding:12px 24px;font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;gap:20px;background:var(--panel2)}
+  .foot .g{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <span class="dot"></span>
+    <span class="t">daily-research</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--faint)">trigger.dev · scheduled task</span>
+    <span class="cron">0 7 * * *</span>
+  </div>
+
+  <div class="chain">
+    <div class="step">
+      <div class="n">01 · crawl</div>
+      <div class="s">Firecrawl</div>
+      <div class="d">6 sources → markdown</div>
+      <div class="ms">4.2s</div>
+      <span class="ok">✓</span>
+    </div>
+    <div class="step">
+      <div class="n">02 · read</div>
+      <div class="s">Claude</div>
+      <div class="d">condense → structured rows</div>
+      <div class="ms">6.8s</div>
+      <span class="ok">✓</span>
+    </div>
+    <div class="step">
+      <div class="n">03 · append</div>
+      <div class="s">Google Sheets</div>
+      <div class="d">OAuth · 5 rows appended</div>
+      <div class="ms">0.9s</div>
+      <span class="ok">✓</span>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="col left">
+      <div class="h">Run log</div>
+      <div class="log">
+        <div><span class="ts">07:00:00</span> <span class="lv">info</span> <span class="m">run triggered (schedule)</span></div>
+        <div><span class="ts">07:00:00</span> <span class="lv">info</span> <span class="m">env ok — 4 vars resolved</span></div>
+        <div><span class="ts">07:00:01</span> <span class="v">firecrawl</span> <span class="m">crawling 6 sources…</span></div>
+        <div><span class="ts">07:00:03</span> <span class="a">warn</span> <span class="m">source 4 timed out — retry 1/3</span></div>
+        <div><span class="ts">07:00:04</span> <span class="g">ok</span> <span class="m">source 4 recovered</span></div>
+        <div><span class="ts">07:00:05</span> <span class="g">ok</span> <span class="m">6/6 fetched · 41.2 KB md</span></div>
+        <div><span class="ts">07:00:05</span> <span class="v">claude</span> <span class="m">condensing…</span></div>
+        <div><span class="ts">07:00:12</span> <span class="g">ok</span> <span class="m">5 findings extracted</span></div>
+        <div><span class="ts">07:00:12</span> <span class="v">sheets</span> <span class="m">auth: oauth refresh ok</span></div>
+        <div><span class="ts">07:00:13</span> <span class="g">ok</span> <span class="m">appended A2:D6</span></div>
+        <div><span class="ts">07:00:13</span> <span class="g">done</span> <span class="m">11.9s · next run 24h</span></div>
+        <div style="margin-top:10px"><span class="ts">$</span> <span class="m">_</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="h">Output</div>
+      <div class="sheet">
+        <div class="shead">
+          <span class="nm">Daily Research</span>
+          <span class="tab">Sheet1 · updated 07:00</span>
+        </div>
+        <table>
+          <thead>
+            <tr><th class="rowno"></th><th>Date</th><th>Finding</th><th>Source</th></tr>
+          </thead>
+          <tbody>
+            <tr class="new"><td class="rowno">2</td><td class="d">2026-07-16</td><td>Scheduling tools in home services are consolidating around one vendor per trade</td><td class="src">industry-brief</td></tr>
+            <tr class="new"><td class="rowno">3</td><td class="d">2026-07-16</td><td>Two competitors added AI call summaries this month; neither writes back to the CRM</td><td class="src">changelogs</td></tr>
+            <tr class="new"><td class="rowno">4</td><td class="d">2026-07-16</td><td>Pricing pages moved from per-seat to per-location in 3 of 6 tracked vendors</td><td class="src">vendor-sites</td></tr>
+            <tr class="new"><td class="rowno">5</td><td class="d">2026-07-16</td><td>Recurring complaint: quote turnaround measured in days, not hours</td><td class="src">forums</td></tr>
+            <tr class="new"><td class="rowno">6</td><td class="d">2026-07-16</td><td>No tracked vendor exposes a public webhook for booking events</td><td class="src">docs</td></tr>
+            <tr><td class="rowno">7</td><td class="d">2026-07-15</td><td>Two vendors piloting SMS-first intake</td><td class="src">industry-brief</td></tr>
+            <tr><td class="rowno">8</td><td class="d">2026-07-15</td><td>Seasonal demand copy shifting to maintenance plans</td><td class="src">vendor-sites</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Firecrawl → Claude → Sheets</span>
+    <span class="g">✓ unattended · typed env · retry with backoff</span>
+    <span style="margin-left:auto">phase3-automations/src/trigger/daily-research.ts</span>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# build output
+dist/
+.astro/
+
+# deps
+node_modules/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Reference material — saved copies of OTHER PEOPLE'S sites, kept locally while
+# studying a layout. This repo is public: never commit someone else's site into
+# it. A SingleFile save of hermes-agent.nousresearch.com sat in the first commit
+# of the pre-publish history and had to be rewritten out before the first push.
+*.singlefile.html
+/reference/
+Hermes*.html
+
+# Source art that no longer ships. The design moved to code-drawn plates, and
+# src/assets/ was 30.8MB of unreferenced Piranesi scans still tracked in HEAD —
+# it never reached dist/. If image sources come back, keep the originals out of
+# git and commit only what the site actually serves (public/img/).
+/src/assets/

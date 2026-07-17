@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AIS-OS console</title>
+<style>
+  :root{
+    --bg:#0e0b12; --panel:#141019; --panel-2:#100c15; --line:#2a2333;
+    --ink:#ece7f5; --dim:#9a90ad; --faint:#6a6178;
+    --accent:#c6b4ff; --green:#7fdca4; --amber:#e6c06a; --red:#e58b8b;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,"Courier New",monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--mono);
+    font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .win{width:1280px;height:960px;display:flex;flex-direction:column;overflow:hidden}
+  .bar{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+  .dots{display:flex;gap:8px}
+  .dots i{width:12px;height:12px;border-radius:50%;display:block}
+  .dots i:nth-child(1){background:#e5817f}.dots i:nth-child(2){background:#e6c06a}.dots i:nth-child(3){background:#7fdca4}
+  .title{color:var(--dim);letter-spacing:.04em;font-size:13px}
+  .title b{color:var(--ink);font-weight:600}
+  .body{flex:1;display:grid;grid-template-columns:340px 1fr;min-height:0}
+  .tree{border-right:1px solid var(--line);background:var(--panel);padding:20px 18px;overflow:hidden}
+  .tree .h{color:var(--faint);font-size:11px;letter-spacing:.22em;text-transform:uppercase;margin-bottom:14px}
+  .tree ul{list-style:none;padding:0}
+  .tree li{padding:3px 0;color:var(--dim);white-space:nowrap}
+  .tree .dir{color:var(--ink)}
+  .tree .dir::before{content:"▸ ";color:var(--accent)}
+  .tree .file{padding-left:20px;color:var(--dim)}
+  .tree .file::before{content:"· ";color:var(--faint)}
+  .tree .sub{padding-left:20px}
+  .term{background:var(--bg);padding:22px 26px;overflow:hidden}
+  .line{white-space:pre-wrap}
+  .prompt{color:var(--green)}.cmd{color:var(--ink)}.tick{color:var(--green)}
+  .k{color:var(--accent)}.d{color:var(--dim)}.a{color:var(--amber)}.g{color:var(--green)}
+  .rule{color:var(--faint);letter-spacing:.02em}
+  .sp{height:14px}
+  .badge{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:1px 8px;color:var(--dim);font-size:12px;margin-right:6px}
+  .cursor{display:inline-block;width:9px;height:17px;background:var(--accent);vertical-align:-3px;margin-left:4px}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <span class="dots"><i></i><i></i><i></i></span>
+    <span class="title"><b>AIS-OS</b> — Mert Ozcetin's AI Operating System · <b>claude code</b></span>
+  </div>
+  <div class="body">
+    <div class="tree">
+      <div class="h">~/AI OS</div>
+      <ul>
+        <li class="dir">context</li>
+        <li class="file sub">priorities.md</li>
+        <li class="dir">references</li>
+        <li class="file sub">3ms-framework.md</li>
+        <li class="file sub">clickup-api.md</li>
+        <li class="dir">scripts</li>
+        <li class="file sub">inbox-tasks.py</li>
+        <li class="dir">.claude/skills</li>
+        <li class="file sub">audit · level-up</li>
+        <li class="file sub">inbox-digest · storm</li>
+        <li class="file sub">slide-builder · watch</li>
+        <li class="dir">decisions</li>
+        <li class="file sub">log.md</li>
+        <li class="file">connections.md</li>
+        <li class="file">CLAUDE.md</li>
+      </ul>
+    </div>
+    <div class="term">
+      <div class="line"><span class="prompt">mert@aios</span> <span class="d">~/AI OS</span> <span class="cmd">$ claude</span></div>
+      <div class="sp"></div>
+      <div class="line"><span class="k">&gt; /audit</span></div>
+      <div class="sp"></div>
+      <div class="line rule">  AIS-OS · FOUR-Cs AUDIT ───────────────────────────────</div>
+      <div class="line">  <span class="d">Capture</span>   <span class="g">████████░░</span>  gmail · calendar · drive</div>
+      <div class="line">  <span class="d">Connect</span>   <span class="g">███████░░░</span>  gws · clickup api · stripe <span class="a">(pending)</span></div>
+      <div class="line">  <span class="d">Curate</span>    <span class="g">██████░░░░</span>  second-brain wiki · references</div>
+      <div class="line">  <span class="d">Create</span>    <span class="g">████████░░</span>  8 skills shipped, end-to-end</div>
+      <div class="sp"></div>
+      <div class="line"><span class="k">&gt; /level-up</span></div>
+      <div class="line">  <span class="tick">✓</span> Mindset — scanned this week's manual work</div>
+      <div class="line">  <span class="tick">✓</span> Method  — scoped 1 automation → <span class="d">decisions/log.md</span></div>
+      <div class="line">  <span class="tick">✓</span> Machine — shipped <span class="a">inbox → clickup</span> triage</div>
+      <div class="sp"></div>
+      <div class="line rule">  SKILLS ────────────────────────────────────────────</div>
+      <div class="line"><span class="badge">/onboard</span><span class="badge">/audit</span><span class="badge">/level-up</span><span class="badge">/inbox-digest</span></div>
+      <div class="line"><span class="badge">/clickup-chat</span><span class="badge">/slide-builder</span><span class="badge">/storm</span><span class="badge">/watch</span></div>
+      <div class="sp"></div>
+      <div class="line"><span class="prompt">mert@aios</span> <span class="d">~/AI OS</span> <span class="cmd">$</span><span class="cursor"></span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,352 @@
+/* ============================================================
+   mertozcetin.com — design tokens + base  (v4: tri-tone)
+
+   THE FIELD IS THE COLOUR. Not a dark page with blue accents — the
+   background itself is ultramarine, and that is the whole reason the
+   page reads as bold rather than tasteful. If the field ever gets
+   watered down toward neutral, the light theme collapses into the
+   generic cream/serif/terracotta look. Hold the field.
+
+   Three tones, and only three:
+     FIELD   ultramarine  — the ground
+     PAPER   bone         — the type
+     EMBER   signal       — never a body colour (see below)
+
+   The two themes swap FIELD and PAPER and keep EMBER, so dark and
+   light are one system rather than two designs.
+
+   Type is a two-voice split: Bodoni carries the voice (display,
+   headings, marquee), Plex Mono carries the system (eyebrows, body,
+   labels, data). The character-decode runs only on the mono, because
+   only a fixed-width face can scramble without reflow jitter.
+   ============================================================ */
+
+/* ---- DARK — ultramarine field ---- */
+:root,
+[data-theme='dark'] {
+  --bg:            #111a54;   /* deep ultramarine — the field */
+  --bg-2:          #0c1240;   /* deeper: bands, marquee, scrims */
+  --panel:         #16205f;
+  --text:          #ede9dd;   /* bone — 13.3:1 on --bg */
+  --text-dim:      rgba(237, 233, 221, 0.74);
+  --muted:         rgba(237, 233, 221, 0.52);
+  --hair:          rgba(237, 233, 221, 0.18);
+  --hair-2:        rgba(237, 233, 221, 0.34);
+
+  --accent:        #ff5a1f;   /* ember — 5.19:1 on --bg */
+  --accent-ink:    #111a54;   /* type on ember fills */
+
+  --duo-shadow:    #0a0f38;
+  --duo-highlight: #ede9dd;
+  --scheme:        dark;
+}
+
+/* ---- LIGHT — bone field ---- */
+[data-theme='light'] {
+  --bg:            #ede9dd;   /* bone */
+  --bg-2:          #e3dece;
+  --panel:         #f4f1e8;
+  --text:          #111a54;   /* ultramarine ink — 13.3:1 on --bg */
+  --text-dim:      rgba(17, 26, 84, 0.76);
+  --muted:         rgba(17, 26, 84, 0.56);
+  --hair:          rgba(17, 26, 84, 0.18);
+  --hair-2:        rgba(17, 26, 84, 0.32);
+
+  /* The one place the themes legitimately diverge: #ff5a1f on bone is
+     3.69:1 and fails AA. This darker ember clears it at 4.75:1. */
+  --accent:        #b83a0c;
+  --accent-ink:    #ede9dd;
+
+  --duo-shadow:    #111a54;
+  --duo-highlight: #ede9dd;
+  --scheme:        light;
+}
+
+/* ---- type + scale + rhythm (theme-independent) ---- */
+:root {
+  --font-display: 'Bodoni Moda Variable', Didot, 'Times New Roman', serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-body:    var(--font-mono);
+
+  --step-eyebrow: 0.68rem;
+  /* Section labels ("WHAT I BUILD", "CAPABILITIES") were riding --step-eyebrow at
+     10.88px — too small to read as headings for the block underneath. They are
+     structure, not fine print, so they get their own step. */
+  --step-tag:     clamp(0.82rem, 0.78rem + 0.2vw, 0.95rem);
+  --step-small:   clamp(0.72rem, 0.69rem + 0.14vw, 0.8rem);
+  --step-body:    clamp(0.85rem, 0.8rem + 0.2vw, 0.95rem);
+  --step-lead:    clamp(0.98rem, 0.88rem + 0.5vw, 1.25rem);
+  --step-h3:      clamp(1.4rem, 1.1rem + 1.4vw, 2.1rem);
+  --step-h2:      clamp(2.2rem, 1.3rem + 3.8vw, 4.6rem);
+  --step-hero:    clamp(3rem, 1rem + 9vw, 9.5rem);
+
+  /* Tracking splits by family. Mono carries its own side bearings and needs
+     pulling hard; Didone is already tight and gets crushed by the same value. */
+  --ls-display:   -0.015em;
+  --ls-mono-hero: -0.05em;
+  --ls-h3:        -0.01em;
+
+  --wrap: 1180px;
+  --gutter: clamp(1.1rem, 0.5rem + 2.6vw, 2.6rem);
+  --hair-w: 1px;
+  --chrome-top: 3.4rem;
+  --chrome-bot: 2rem;
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-hard: cubic-bezier(0.7, 0, 0.2, 1);
+  --ease-snap: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 0.15s;
+  --t-med: 0.22s;
+
+  --grain-url: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================ reset */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+img, svg, canvas, video { display: block; max-width: 100%; }
+button, input, textarea { font: inherit; color: inherit; }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; padding: 0; }
+
+/* ============================================================ base */
+html {
+  color-scheme: var(--scheme);
+  background: var(--bg);
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--chrome-top) + 1rem);
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: var(--step-body);
+  font-weight: 400;
+  line-height: 1.7;
+  overflow-x: hidden;
+  min-height: 100svh;
+  transition: background-color var(--t-med) var(--ease-snap), color var(--t-med) var(--ease-snap);
+}
+::selection { background: var(--accent); color: var(--accent-ink); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9000; pointer-events: none;
+  opacity: 0.05; mix-blend-mode: overlay;
+  background-image: var(--grain-url); background-size: 12.8rem 12.8rem;
+}
+[data-theme='light'] body::after { opacity: 0.07; mix-blend-mode: multiply; }
+
+/* ============================================================ primitives */
+.wrap { width: 100%; max-width: var(--wrap); margin-inline: auto; padding-inline: var(--gutter); }
+
+/* Screen readers get the real text; the visible twin is free to churn.
+   See Decode.astro — scrambling textContent would otherwise be announced. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--step-eyebrow); font-weight: 500;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+}
+
+/* Didone wants a high optical size to get its hairline thin strokes; at
+   'opsz' 96 the contrast between stem and hairline is what makes it a Didone
+   rather than a generic serif. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 0.94;
+  letter-spacing: var(--ls-display);
+  font-variation-settings: 'opsz' 96, 'wght' 600;
+}
+.mono { font-family: var(--font-mono); }
+.hair { border: 0; height: var(--hair-w); background: var(--hair); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 0.5ch;
+  font-family: var(--font-mono);
+  font-size: var(--step-eyebrow); font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim);
+  border: var(--hair-w) solid var(--hair-2); padding: 0.42em 0.72em; white-space: nowrap;
+  transition: border-color var(--t-fast) var(--ease-snap), color var(--t-fast) var(--ease-snap);
+}
+
+/* Ember earns its keep here: a status light is exactly what a signal colour is for.
+   Two rings so it reads as a beacon rather than a bullet — a steady sonar pulse
+   pushing outward, plus a slow breath on the core itself. */
+.live-dot {
+  flex: none; align-self: center;
+  position: relative; display: inline-block;
+  width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--accent);
+  transform: translateY(-0.04em);
+  animation: dotBreathe 2.6s var(--ease) infinite;
+}
+.live-dot::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: pulse 2.6s var(--ease) infinite;
+}
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 0.6em transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@keyframes dotBreathe {
+  0%, 100% { opacity: 1; }
+  55%      { opacity: 0.55; }
+}
+
+/* A section label belongs to the block BELOW it, so it sits close to that block
+   and keeps its distance from whatever came before. The old symmetric 1rem
+   padding-block left it floating equidistant between two sections, reading as
+   neither's. */
+.section-tag {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  font-family: var(--font-mono);
+  font-size: var(--step-tag); font-weight: 500;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+  padding-block: 1rem 0.5rem;
+}
+.section-tag .idx { color: var(--accent); }
+
+.btn {
+  font-family: var(--font-mono);
+  font-size: var(--step-eyebrow); font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 1em 1.4em; border: 1px solid var(--hair-2);
+  display: inline-flex; align-items: center; gap: 0.7ch;
+  transition: background-color var(--t-fast) var(--ease-snap),
+              color var(--t-fast) var(--ease-snap),
+              border-color var(--t-fast) var(--ease-snap),
+              transform var(--t-fast) var(--ease-snap);
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { transform: translateY(-2px); }
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============================================================ motion */
+
+/* Reveals run on ANIMATION, not transition — and that is load-bearing.
+ *
+ * This used to be `transition: opacity .7s, transform .8s`. Astro compiles a
+ * component's `.big` to `.big[data-astro-cid-xxx]` — specificity (0,2,0),
+ * IDENTICAL to `.reveal.in`. Ties break on source order and component styles
+ * land after this file, so any component that set `transition:` on a .reveal
+ * element REPLACED the whole list and opacity/transform snapped with no fade.
+ * Four elements were silently broken this way: .big in ContactCta (every page)
+ * and contact, .row in WorkIndex, .more in AboutTeaser. The --i stagger below
+ * never ran once either — transition-delay does nothing to a property that has
+ * no transition.
+ *
+ * An animation can't be clobbered by a `transition:` declaration; they don't
+ * touch. This makes the whole class of collision unrepresentable rather than
+ * patching the four call sites.
+ *
+ * INVARIANT: never hover-transform a .reveal element. An animation's `both`
+ * fill outranks a normal declaration and would eat it. Put the transform on a
+ * child — .arrow already does this. */
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+/* Gated on html.js so a JS failure can't leave the page invisible — .reveal was
+   unconditionally opacity:0, which meant one thrown error blanked everything.
+   The inline script in Base.astro sets .js before first paint, so no flash. */
+html.js .reveal { opacity: 0; transform: translateY(20px); }
+html.js .reveal.in {
+  animation: revealIn 0.7s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* Accent mark — the underline draws itself L->R when the phrase scrolls in.
+ * Used sparingly and deliberately: 4 on the whole site. Ember is the SIGNAL
+ * colour (the live dot, the section markers, the artifact hover all lean on it
+ * meaning "look here"), so spending it freely would cost it its meaning.
+ *
+ * Weight 500 in mono, not 700: only Plex Mono 400/500 are loaded, so 700 would
+ * synthesize a fake bold. Bodoni Moda IS variable, so display contexts get a
+ * real 700 for free — see .on-display below.
+ *
+ * --mark-line is a property rather than a literal because the keyframes below
+ * would otherwise hard-code the thickness for every mark on the site. A 2px
+ * rule under 27px display type reads as a hairline; FeaturedWork's hint sets
+ * 3px on the wrapper. var() resolves against the animating element, so one
+ * keyframe serves every size.
+ *
+ * The 2px default is a var() FALLBACK, not `--mark-line: 2px` declared here.
+ * Declaring it would set the property directly on .mark, and a directly-set
+ * value beats an inherited one — so a parent's override could never win and the
+ * property would be decorative. */
+.mark {
+  color: var(--accent);
+  font-weight: 500;
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% var(--mark-line, 2px);   /* no-JS default: underline present */
+}
+/* font-family is load-bearing, not tidiness: this used to set only the weight,
+   which worked by accident because its one call site (/about's .big) was already
+   Bodoni. Anywhere the parent is mono — the /work hint — `wght 700` does nothing
+   to a non-variable face and font-weight:700 synthesizes a fake bold instead. */
+.display .mark, .mark.on-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variation-settings: 'opsz' 72, 'wght' 700;
+}
+@keyframes markUnderline {
+  from { background-size: 0% var(--mark-line, 2px); }
+  to   { background-size: 100% var(--mark-line, 2px); }
+}
+html.js .mark { background-size: 0% var(--mark-line, 2px); }
+html.js .mark.in { animation: markUnderline 0.7s var(--ease) 0.15s both; }
+
+/* Mask-rise — the Didone entrance. The line is clipped by an overflow:hidden
+   parent and slides up out of nothing, which is what gives a serif display its
+   theatre. Pure CSS; never depends on JS. */
+.mask { display: block; overflow: hidden; padding-block: 0.04em; }
+@keyframes maskRise { from { transform: translateY(105%); } to { transform: none; } }
+.mask > * {
+  display: block;
+  animation: maskRise 0.9s var(--ease) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Boot sequence — `both` fill hides the element through its delay, which is
+   exactly why the reduced-motion block below must zero animation-delay. */
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+[data-boot] {
+  animation: rise 0.6s var(--ease-snap) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Theme-swap glitch — a scanline sweep. */
+@keyframes scan { from { transform: translateY(-100%); } to { transform: translateY(100%); } }
+html.theme-glitch body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 9500; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 2px, var(--text) 2px 3px);
+  opacity: 0.06;
+  animation: scan 0.22s var(--ease-hard) 1;
+}
+
+/* The motion gate is gone — deliberately, and it is worth knowing why.
+ *
+ * It started as a prefers-reduced-motion block, which was silently flattening
+ * the entire site (the OS setting is routinely flipped for performance, not for
+ * health — Mert's own machine had it off, which is why he asked three times why
+ * nothing moved). That became an explicit html[data-motion] opt-out with a
+ * header toggle. Mert then asked for the toggle gone too.
+ *
+ * So: nothing here respects reduced motion in any form. That's his call, made
+ * twice with the tradeoff in front of him. Not re-adding a query-param escape
+ * hatch nobody could discover — that's cruft wearing a virtue costume. Removed
+ * cleanly; `git show 920accd` has the whole mechanism if it's ever wanted. */

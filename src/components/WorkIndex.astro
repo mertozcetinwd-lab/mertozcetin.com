@@ -1,0 +1,121 @@
+---
+// The rest of the work, as an index rather than a gallery.
+//
+// This is what makes the four highlighted builds actually pop. Ten cards all
+// shouting equally is the flat hierarchy the /work page started with; four
+// images against six quiet rows is a hierarchy. The contrast does the work, not
+// the size.
+//
+// These are still real, shipped projects — they get their name, their stack and
+// their repo. They just don't get a picture.
+import { projects } from '../data/site.js';
+
+const items = projects.filter((p) => !p.featured && !p.highlight);
+---
+
+<section class="index" aria-label="More builds">
+  <div class="wrap">
+    <div class="section-tag reveal">
+      <span><span class="idx">◍</span> Also shipped</span>
+      <span>{items.length} · 2026</span>
+    </div>
+
+    <ul class="rows">
+      {items.map((p, i) => (
+        <li class="row reveal" style={`--i:${Math.min(i, 4)}`}>
+          <span class="n">{p.idx}</span>
+
+          <div class="main">
+            <h3 class="t">{p.title}</h3>
+            <p class="o">{p.outcome}</p>
+          </div>
+
+          <div class="meta">
+            <span class="kind">{p.kind}</span>
+            <div class="tags">
+              {p.tags.slice(0, 4).map((t) => <span class="chip">{t}</span>)}
+            </div>
+          </div>
+
+          <div class="links">
+            {p.links
+              ? p.links.map((l) => (
+                  <a class="link" href={l.href} target={l.href.startsWith('http') ? '_blank' : undefined}
+                     rel={l.href.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                    {l.label} <span aria-hidden="true">↗</span>
+                  </a>
+                ))
+              : <span class="nolink">Private</span>}
+          </div>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .index { padding-block: clamp(2rem, 5vh, 3.5rem) clamp(2.5rem, 7vh, 5rem); border-top: 1px solid var(--hair); }
+
+  .rows { border-top: 1px solid var(--hair); }
+  .row {
+    display: grid;
+    grid-template-columns: 3ch 1.5fr 1fr auto;
+    gap: clamp(1rem, 2.5vw, 2.4rem);
+    align-items: start;
+    padding-block: clamp(1.2rem, 2.5vh, 1.8rem);
+    border-bottom: 1px solid var(--hair);
+    transition: background-color 0.25s var(--ease);
+  }
+  /* A whole-row wash on hover, so a dense list still feels alive to a pointer. */
+  .row:hover { background: color-mix(in srgb, var(--text) 4%, transparent); }
+
+  .n {
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.1em; color: var(--accent); padding-top: 0.35em;
+  }
+
+  .t {
+    font-family: var(--font-display);
+    font-variation-settings: 'opsz' 48, 'wght' 600;
+    font-size: var(--step-h3); line-height: 1.1; letter-spacing: var(--ls-display);
+    max-width: 22ch;
+  }
+  .o {
+    font-family: var(--font-mono);
+    font-size: var(--step-small); line-height: 1.55;
+    color: var(--text-dim); margin-top: 0.5rem; max-width: 44ch;
+  }
+
+  .meta { display: flex; flex-direction: column; gap: 0.7rem; padding-top: 0.2em; }
+  .kind {
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+  .links { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; padding-top: 0.3em; }
+  .link {
+    display: inline-flex; align-items: center; gap: 0.5ch;
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--text);
+    border-bottom: 1px solid var(--hair-2); padding-bottom: 0.25rem;
+    white-space: nowrap;
+    transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+  .link:hover { color: var(--accent); border-color: var(--accent); }
+  .nolink {
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .row { grid-template-columns: 3ch 1fr; gap: 0.8rem 1rem; }
+    .meta, .links { grid-column: 2; }
+    .links { align-items: flex-start; }
+    .t { max-width: none; }
+  }
+</style>

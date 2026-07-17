@@ -1,0 +1,20 @@
+{
+  "name": "mertozcetin-site",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/bodoni-moda": "^5.2.7",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "astro": "^7.0.6"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.3.0"
+  }
+}

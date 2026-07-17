@@ -1,0 +1,101 @@
+---
+// Three cells that send visitors deeper.
+//
+// The hover is a full field inversion: ultramarine <-> bone. On an achromatic
+// site that was a strong move; on a coloured field it's a genuine slam, because
+// the whole cell trades places with the page. That inversion is what replaced
+// the engraving this band used to sit on.
+//
+// The label is Didone now, so it can't scramble (proportional widths jitter).
+// The decode moves to the mono desc underneath, which is where it belongs.
+import { gateways } from '../data/site.js';
+---
+
+<section class="band" aria-label="Explore the site">
+  <ul class="cells">
+    {gateways.map((g) => (
+      <li class="cell" data-scramble-scope>
+        <a href={g.href}>
+          <span class="idx">{g.idx}</span>
+          <span class="mid">
+            <span class="label display">{g.label}</span>
+            <span class="desc" data-scramble-hover>{g.desc}</span>
+          </span>
+          <span class="go">Enter <span class="arrow" aria-hidden="true">→</span></span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .band { border-bottom: 1px solid var(--hair); }
+  .cells {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    min-height: clamp(320px, 44vh, 460px);
+  }
+  .cell { border-left: 1px solid var(--hair); }
+  .cell:first-child { border-left: 0; }
+
+  .cell a {
+    display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
+    height: 100%; padding: clamp(1.3rem, 2.6vw, 2.2rem);
+    /* Everything inside inherits colour, so the inversion only flips two
+       properties here and nothing can be stranded at the old value. */
+    color: var(--text);
+    background: transparent;
+    transition: background-color 0.18s var(--ease-hard), color 0.18s var(--ease-hard);
+  }
+  .cell a:hover,
+  .cell a:focus-visible,
+  .cell a:focus-within {
+    background: var(--text);
+    color: var(--bg);
+    outline: none;
+  }
+
+  .idx {
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--accent);
+    transition: color 0.18s var(--ease-hard);
+  }
+  /* Ember on bone is fine; ember on an inverted (bone) cell is not — it drops to
+     3.7:1. Inside the inversion the idx rides the inherited colour instead. */
+  .cell a:hover .idx,
+  .cell a:focus-within .idx { color: inherit; opacity: 0.55; }
+
+  .mid { display: flex; flex-direction: column; gap: 0.9rem; }
+  .label {
+    font-size: clamp(2rem, 4.4vw, 3.8rem);
+    line-height: 0.94; text-transform: uppercase; color: inherit;
+  }
+  .desc {
+    font-family: var(--font-mono);
+    font-size: var(--step-small); line-height: 1.5;
+    color: inherit; opacity: 0.66; max-width: 22ch;
+  }
+
+  .go {
+    display: inline-flex; align-items: center; gap: 0.6ch;
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: inherit; opacity: 0.62;
+    transition: opacity 0.18s var(--ease-hard);
+  }
+  .arrow { transition: transform var(--t-fast) var(--ease-snap); }
+  .cell a:hover .go,
+  .cell a:focus-within .go { opacity: 1; }
+  .cell a:hover .arrow,
+  .cell a:focus-within .arrow { transform: translateX(5px); }
+
+  @media (max-width: 760px) {
+    .cells { grid-template-columns: 1fr; min-height: 0; }
+    .cell { border-left: 0; border-top: 1px solid var(--hair); }
+    .cell:first-child { border-top: 0; }
+    .cell a { gap: 1.1rem; padding-block: 1.7rem; }
+    .label { font-size: clamp(1.9rem, 10vw, 2.6rem); }
+  }
+</style>

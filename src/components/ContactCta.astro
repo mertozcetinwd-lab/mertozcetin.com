@@ -1,0 +1,78 @@
+---
+// The ask, stated once.
+//
+// This used to open with "If you're hiring for AI work, or you want to talk
+// about something I built:" — which asks permission to be contacted and hedges
+// twice before getting to the point. Two words do it better: the address is the
+// action, so it gets to be the headline, and nothing qualifies it.
+//
+// The big line is LinkedIn, not email. Setting an email address in 40px type
+// while a footnote says "actually, message me on LinkedIn" tells the reader to
+// do one thing and points at another; the biggest element on the section IS the
+// instruction, so it has to be the channel that gets answered.
+//
+// A drawn arrow captioned "fastest way to reach me" used to sit beside the
+// address. Mert cut it: the address is already the biggest thing on the section
+// and an arrow pointing at it was labelling the obvious.
+import { meta, socials, primaryContact } from '../data/site.js';
+---
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="section-tag reveal">
+      <span><span class="idx">◍</span> Contact</span>
+      <span>Direct</span>
+    </div>
+
+    <h2 class="ask display reveal">Let's talk.</h2>
+
+    <a class="big reveal" href={primaryContact.href} target="_blank" rel="noopener noreferrer">
+      {primaryContact.show} <span class="arrow" aria-hidden="true">↗</span>
+    </a>
+
+    <div class="row reveal">
+      <span class="where">{meta.location}</span>
+      <nav class="socials" aria-label="Social">
+        {socials.filter((s) => s.label !== primaryContact.label).map((s) => (
+          <a href={s.href}>{s.label}</a>
+        ))}
+      </nav>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact { padding-block: clamp(3rem, 10vh, 7rem); border-top: 1px solid var(--hair); }
+
+  .ask {
+    font-size: var(--step-h2);
+    text-transform: uppercase;
+    margin: 1rem 0 1.8rem;
+  }
+
+  /* The address is long and mono is wide — this clamp keeps it on one line down
+     to small phones rather than breaking mid-URL. */
+  .big {
+    display: inline-flex; align-items: center; gap: 0.4ch; flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: clamp(0.95rem, 0.3rem + 3vw, 2.4rem);
+    font-weight: 500; line-height: 1.1; letter-spacing: -0.03em;
+    margin-bottom: 2.6rem; color: var(--text);
+    border-bottom: 1px solid var(--hair-2); padding-bottom: 0.2em;
+    transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+  .big:hover { color: var(--accent); border-color: var(--accent); }
+  .arrow { display: inline-block; color: var(--accent); transition: transform 0.3s var(--ease); }
+  .big:hover .arrow { transform: translate(0.15em, -0.15em); }
+
+  .row {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem;
+    align-items: center; border-top: 1px solid var(--hair); padding-top: 1.4rem;
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  }
+  .socials { display: flex; gap: 1.4rem; }
+  .socials a { transition: color var(--t-fast) var(--ease-snap); }
+  .socials a:hover { color: var(--accent); }
+</style>

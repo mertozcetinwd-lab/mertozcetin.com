@@ -1,0 +1,30 @@
+---
+// `lead` takes a plain string; the `lead` slot takes markup instead, for the one
+// page that needs a <Mark> inside the sentence. The slot wins when both exist.
+interface Props { eyebrow?: string; title: string; lead?: string }
+const { eyebrow = '', title, lead = '' } = Astro.props;
+const hasLeadSlot = Astro.slots.has('lead');
+---
+
+<section class="page-head">
+  <div class="wrap">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h1 class="display title"><span class="mask"><span>{title}</span></span></h1>
+    {(hasLeadSlot || lead) && (
+      <p class="lead">{hasLeadSlot ? <slot name="lead" /> : lead}</p>
+    )}
+  </div>
+</section>
+
+<style>
+  .page-head { padding-block: clamp(2.5rem, 9vh, 5rem) clamp(1.5rem, 4vh, 2.5rem); border-bottom: 1px solid var(--hair); }
+  .title {
+    font-size: var(--step-h2);
+    text-transform: uppercase; margin: 0.9rem 0 0;
+  }
+  .lead {
+    font-family: var(--font-mono);
+    color: var(--text-dim); font-size: var(--step-lead);
+    max-width: 52ch; margin-top: 1.4rem; line-height: 1.55;
+  }
+</style>

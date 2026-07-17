@@ -1,0 +1,115 @@
+---
+// Two voices, stated immediately: the name in Didone, everything else in mono.
+//
+// The name rises out of a clipped mask — a serif display wants theatre, and a
+// line sliding up out of nothing is the oldest and best way to give it that.
+// It's pure CSS, so the name never depends on JS having run.
+//
+// The manifest that used to sit on the right is gone: the homepage doesn't list
+// work any more. The gateway band below sends people to /work instead.
+import { meta, primaryContact } from '../data/site.js';
+import Decode from './Decode.astro';
+
+// One ordered sequence, declared here rather than scattered through the CSS.
+const T = { eyebrow: 0, l1: 120, l2: 260, tag: 700, cta: 860, status: 980 };
+---
+
+<section class="hero" id="top">
+  <div class="wrap grid">
+    <div class="lede">
+      <p class="eyebrow" data-boot style={`--d:${T.eyebrow}ms`}>{meta.role}</p>
+
+      <h1 class="display name">
+        <span class="mask"><span style={`--d:${T.l1}ms`}>Mert</span></span>
+        <span class="mask"><span style={`--d:${T.l2}ms`}>Ozcetin</span></span>
+      </h1>
+
+      {/* The <p> lives HERE, not inside Decode — that's what gives it this
+          component's scope so the .tag rules below actually apply.
+          `mark` splits the string around "automations" so the accent word can be
+          a real element: scramble() writes textContent and would delete it. */}
+      <p class="tag"><Decode text={meta.tagline} dur={760} mark={meta.taglineMark} /></p>
+
+      <div class="cta" data-boot style={`--d:${T.cta}ms`}>
+        <a class="btn primary" href="/work">See the work <span aria-hidden="true">→</span></a>
+        {/* Was mailto:. LinkedIn is the channel Mert answers on, so it's the one
+            offered — and the button names what happens rather than saying
+            "LinkedIn" and leaving the visitor to guess. */}
+        <a class="btn ghost" href={primaryContact.href} target="_blank" rel="noopener noreferrer">
+          Message me on LinkedIn <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <p class="status" data-boot style={`--d:${T.status}ms`}>
+        <span class="live-dot" aria-hidden="true"></span>{meta.status}
+      </p>
+    </div>
+
+    {/* The one animated plate on the site: a live agent graph. It's the only
+        permanently-moving thing, it's drawn in code (nothing rented), and it
+        fills the dead right column the hero has had since the manifest left. */}
+    <div class="art" data-boot style="--d:520ms">
+      <canvas data-plate data-seed="20260716" data-nodes="full" aria-hidden="true"></canvas>
+      <span class="cap">Fig. — agent graph · drawn in code</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    display: flex; align-items: center;
+    min-height: calc(100svh - var(--chrome-top) - var(--chrome-bot));
+    padding-block: clamp(3rem, 8vh, 5rem);
+  }
+  .grid {
+    display: grid; grid-template-columns: 1.25fr 0.75fr;
+    gap: clamp(1.6rem, 5vw, 4rem);
+    align-items: center; width: 100%;
+  }
+
+  .art { position: relative; }
+  .art canvas {
+    display: block; width: 100%; aspect-ratio: 4 / 3;
+  }
+  .cap {
+    display: block; margin-top: 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem; font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  }
+
+  .eyebrow { margin-bottom: 1.6rem; }
+
+  .name {
+    font-size: var(--step-hero);
+    text-transform: uppercase;
+    margin-bottom: 2.8rem;
+  }
+
+  .tag {
+    max-width: 44ch; color: var(--text-dim);
+    font-size: var(--step-lead); line-height: 1.55;
+    /* Until the Decode scope bug was fixed this rule didn't exist and the gap
+       was literally 0px — which is why raising it twice changed nothing. Now
+       that it applies, 9vh measured 81px and overshot; this lands ~56px. */
+    margin-bottom: clamp(2.8rem, 6vh, 4rem);
+    /* the decode's own entrance rides the boot rule */
+    animation: rise 0.6s var(--ease-snap) both;
+    animation-delay: 700ms;
+  }
+
+  .cta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-bottom: clamp(2rem, 4vh, 2.8rem); }
+
+  .status {
+    display: inline-flex; align-items: center;
+    gap: 0.95ch;   /* the dot was crowding the text */
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .hero { min-height: 0; padding-block: clamp(3rem, 12vh, 5rem) clamp(2.5rem, 8vh, 4rem); }
+    .grid { grid-template-columns: 1fr; gap: 2.5rem; }
+    .art { max-width: 420px; }
+  }
+</style>

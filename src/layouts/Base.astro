@@ -1,0 +1,101 @@
+---
+// Two voices: Bodoni carries the display, Plex Mono carries the system.
+// Only two mono weights ship — 400 for body, 500 for labels/eyebrows. Mono 600
+// went unused the moment display moved to Bodoni, and it was costing ~29KB of
+// woff2 that no selector could ever reach.
+import '@fontsource-variable/bodoni-moda';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import '../styles/tokens.css';
+import Chrome from '../components/Chrome.astro';
+import { meta } from '../data/site.js';
+
+interface Props { title?: string; description?: string }
+const {
+  title = `${meta.name} — ${meta.role}`,
+  description = meta.tagline,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="color-scheme" content="dark light" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <script is:inline>
+      // Runs before first paint, and both jobs here depend on that:
+      //   data-theme — settle it or the page flashes the wrong field
+      //   .js        — tokens.css hides .reveal / .mark ONLY under html.js, so
+      //                a JS failure leaves everything visible instead of blank
+      (function () {
+        var el = document.documentElement;
+        el.classList.add('js');
+        var t;
+        try {
+          var p = new URLSearchParams(location.search).get('theme');
+          t = p || localStorage.getItem('mz-theme');
+        } catch (e) {}
+        if (t === 'dark' || t === 'light') el.setAttribute('data-theme', t);
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#work">Skip to content</a>
+
+    <!-- Shared theme-reactive duotone filter. Holds every work artifact at neutral
+         grey until hover lifts it to real colour — see WorkArtifact.astro. -->
+    <svg class="dt-defs" width="0" height="0" aria-hidden="true" focusable="false">
+      <filter id="duotone" color-interpolation-filters="sRGB">
+        <feColorMatrix type="saturate" values="0" />
+        <feComponentTransfer>
+          <feFuncR id="duoR" type="table" tableValues="0 1" />
+          <feFuncG id="duoG" type="table" tableValues="0 1" />
+          <feFuncB id="duoB" type="table" tableValues="0 1" />
+        </feComponentTransfer>
+      </filter>
+    </svg>
+
+    <Chrome />
+    <main><slot /></main>
+
+    <script define:vars={{ tz: meta.tz }}>
+      // define:vars is what lets the timezone come from site.js instead of being
+      // hard-coded in the script — this block is inlined, not a module import.
+      window.__mzTz = tz;
+    </script>
+    <script>
+      import { initThemeControls } from '../scripts/theme.js';
+      import { initMotion, initClock } from '../scripts/motion.js';
+      import { initDuotone } from '../scripts/duotone.js';
+      initDuotone();
+      initThemeControls();
+      initMotion();
+      initClock(window.__mzTz);
+
+      // Async — pages with no canvas never pay for it. (The homepage now has
+      // three: the hero graph and the two 'graph' capability cells.)
+      if (document.querySelector('canvas[data-plate]')) {
+        import('../scripts/plate-canvas.js').then((m) => m.initPlateCanvas());
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  body { padding-top: var(--chrome-top); padding-bottom: var(--chrome-bot); }
+  .dt-defs { position: absolute; width: 0; height: 0; }
+  .skip {
+    position: fixed; top: -120px; left: 0; z-index: 200;
+    background: var(--text); color: var(--bg);
+    padding: 0.6em 1em; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em;
+    transition: top 0.2s var(--ease);
+  }
+  .skip:focus { top: 0; }
+</style>

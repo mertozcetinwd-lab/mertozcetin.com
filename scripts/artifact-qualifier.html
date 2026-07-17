@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI Lead Qualifier</title>
+<!--
+  Composed from the REAL contract in DEMO_LEAD_QUALIFIER/CLAUDE.md:
+  LeadInput  = name, company, role, companySize, industry, budget, website, message
+  Output     = { score, tier, reasoning, recommendedAction,
+                 criteria: { budget, authority, need, timing } }
+  The lead shown is from Clay LeadGen/hvac_home_service_leads_50.csv's domain
+  (HVAC / home services). Nothing here is invented — it's the shipped shape.
+-->
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161920; --panel2:#12141a; --line:#272b35;
+    --ink:#eef1f6; --dim:#98a1b2; --faint:#616a7a;
+    --accent:#6ea8fe; --green:#4ec98a; --amber:#e6b45a; --red:#e5817f; --violet:#a99bff;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+  .win{width:1300px;height:1040px;display:flex;flex-direction:column;overflow:hidden}
+
+  .bar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .bar .t{font-weight:600}
+  .bar .url{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+  .body{flex:1;display:grid;grid-template-columns:1fr 1.25fr;min-height:0}
+  .col{padding:26px 28px;overflow:hidden}
+  .col.left{border-right:1px solid var(--line);background:var(--panel2)}
+  .h{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:16px}
+
+  .field{margin-bottom:13px}
+  .field .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+  .field .v{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 11px;font-size:13px;color:var(--ink)}
+  .field .v.msg{color:var(--dim);line-height:1.5;font-size:12px}
+  .submit{margin-top:18px;background:var(--accent);color:#0b1020;font-weight:600;text-align:center;padding:11px;border-radius:7px;font-size:13px}
+
+  .verdict{display:flex;align-items:flex-start;gap:22px;margin-bottom:22px}
+  .score{font-family:var(--mono);font-size:74px;font-weight:700;line-height:.9;color:var(--green)}
+  .score .of{font-size:20px;color:var(--faint);font-weight:400}
+  .tierwrap{padding-top:6px}
+  .tier{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+        color:var(--green);border:1px solid var(--green);border-radius:5px;padding:4px 11px;font-weight:600}
+  .tierlab{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+
+  .sec{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin:20px 0 9px}
+  .reason{color:var(--dim);font-size:13px;line-height:1.6;border-left:2px solid var(--line);padding-left:12px}
+  .action{background:var(--panel);border:1px solid var(--accent);border-radius:6px;padding:11px 13px;font-size:13px;color:var(--ink)}
+
+  .crit{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .c{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
+  .c .m{font-family:var(--mono);font-size:13px;width:13px}
+  .c.y .m{color:var(--green)} .c.n .m{color:var(--red)}
+  .c .n2{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+
+  .foot{border-top:1px solid var(--line);padding:12px 28px;font-family:var(--mono);font-size:11px;color:var(--faint);
+        display:flex;gap:22px;background:var(--panel2)}
+  .foot .ok{color:var(--green)}
+  .chain{display:flex;align-items:center;gap:7px}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <span class="dot"></span>
+    <span class="t">AI Lead Qualifier</span>
+    <span class="url">ai-lead-qualifier.vercel.app</span>
+  </div>
+
+  <div class="body">
+    <div class="col left">
+      <div class="h">Lead intake</div>
+      <div class="field"><div class="k">Name</div><div class="v">Dana Whitfield</div></div>
+      <div class="field"><div class="k">Company</div><div class="v">Whitfield Heating &amp; Air</div></div>
+      <div class="field"><div class="k">Role</div><div class="v">Operations Director</div></div>
+      <div class="field"><div class="k">Company size</div><div class="v">45</div></div>
+      <div class="field"><div class="k">Industry</div><div class="v">HVAC / home services</div></div>
+      <div class="field"><div class="k">Budget</div><div class="v">$2k–5k / mo</div></div>
+      <div class="field"><div class="k">Message</div><div class="v msg">Booking coordinator spends most of the morning re-typing call notes into the CRM. Want it handled before Q4.</div></div>
+      <div class="submit">Qualify lead</div>
+    </div>
+
+    <div class="col">
+      <div class="h">Qualification result</div>
+
+      <div class="verdict">
+        <div class="score">82<span class="of">/100</span></div>
+        <div class="tierwrap">
+          <div class="tierlab">Tier</div>
+          <span class="tier">Hot</span>
+        </div>
+      </div>
+
+      <div class="sec">Reasoning</div>
+      <div class="reason">Strong ICP fit: mid-market home services, decision-maker contact, and a named manual process with a stated deadline. Budget sits in band. No timeline pressure signal beyond “before Q4”.</div>
+
+      <div class="sec">Recommended action</div>
+      <div class="action">Book a scoping call within 48h</div>
+
+      <div class="sec">Criteria</div>
+      <div class="crit">
+        <div class="c y"><span class="m">✓</span><span class="n2">budget</span></div>
+        <div class="c y"><span class="m">✓</span><span class="n2">authority</span></div>
+        <div class="c y"><span class="m">✓</span><span class="n2">need</span></div>
+        <div class="c n"><span class="m">✕</span><span class="n2">timing</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="chain">POST /api/qualify → trigger.dev <span style="color:var(--violet)">qualify-lead</span> → Claude → zod</span>
+    <span class="ok">✓ validated against QualificationResult</span>
+    <span style="margin-left:auto">rubric: workflows/lead-qualification.md</span>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,143 @@
+---
+// The flagship block — the one project that gets the big treatment, up top,
+// visually distinct from the list below. Pulls the project flagged `featured`.
+import { projects } from '../data/site.js';
+import WorkArtifact from './WorkArtifact.astro';
+import Mark from './Mark.astro';
+
+const p = projects.find((x) => x.featured) || projects[0];
+const isLive = p.status === 'live';
+---
+
+<section class="featured" id="flagship">
+  <div class="wrap">
+    <div class="section-tag reveal">
+      <span><span class="idx">◍</span> Flagship</span>
+      <span>{p.idx} · {p.kind} · {p.year}</span>
+    </div>
+
+    <div class="lede reveal">
+      <div class="body">
+        <h2 class="display title">{p.title}</h2>
+        <p class="summary">{p.summary}</p>
+
+        <div class="meta mono">
+          <span>{p.role}</span>
+          <span class="sep">/</span>
+          <span>{p.tags.join(' · ')}</span>
+          <span class="sep">/</span>
+          <span class="status">
+            {isLive && <span class="live-dot" aria-hidden="true"></span>}
+            {p.status}
+          </span>
+        </div>
+
+        <p class="outcome"><span class="arrow">→</span> {p.outcome}</p>
+
+        {p.links && (
+          <div class="links">
+            {p.links.map((l) => (
+              <a class="link mono" href={l.href}>{l.label} <span aria-hidden="true">↗</span></a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div class="art">
+        {/* Carries information rather than decorating: the duotone grey→colour
+            reveal is the site's signature and nothing else tells anyone it's
+            there. A recruiter scanning for twenty seconds never finds it by
+            accident. The drawn arrow that used to point at the plate is gone;
+            the label does the job alone now, louder. Hidden on touch — below.
+
+            The wrapper is owned HERE on purpose. A class passed into <Mark>
+            would land carrying Mark's scope hash, so these rules would compile
+            to a selector that never matches and Astro would treeshake them —
+            the trap that shipped the old arrow unpositioned. font-size and
+            --mark-line both inherit through to the .mark inside. */}
+        <span class="hint"><Mark display>Hover it!</Mark></span>
+        <WorkArtifact
+          src={p.art.src}
+          focus={p.art.focus}
+          ratio={p.art.ratio || '16 / 10'}
+          alt={`${p.title} — real artifact`}
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .featured { padding-block: clamp(2rem, 5vh, 4rem) clamp(1rem, 3vh, 2rem); }
+  .lede {
+    display: grid; grid-template-columns: 1fr 1.15fr;
+    gap: clamp(1.4rem, 4vw, 4rem);
+    align-items: center;
+    padding-top: clamp(1rem, 3vw, 2.2rem);
+  }
+  .title {
+    font-size: clamp(1.9rem, 1.2rem + 2.8vw, 3.6rem);
+    line-height: 1.02; max-width: 18ch;
+  }
+  .summary {
+    font-family: var(--font-mono);
+    color: var(--text-dim); font-size: var(--step-lead);
+    line-height: 1.55; max-width: 50ch; margin-top: 1.4rem;
+  }
+
+  .meta {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem;
+    font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); margin-top: 1.8rem;
+  }
+  .meta .sep { color: var(--hair-2); }
+  .meta .status { display: inline-flex; align-items: center; gap: 0.5ch; color: var(--text-dim); }
+
+  .outcome {
+    font-size: var(--step-body); color: var(--text);
+    margin-top: 1.4rem; max-width: 46ch; line-height: 1.6;
+  }
+  .outcome .arrow { color: var(--muted); margin-right: 0.4ch; }
+
+  .links { display: flex; gap: 1.2rem; margin-top: 1.6rem; }
+  .link {
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--text); border-bottom: 1px solid var(--hair-2);
+    padding-bottom: 0.3rem; transition: border-color 0.25s var(--ease);
+  }
+  .link:hover { border-color: var(--text); }
+
+  .art { position: relative; }
+  /* Anchored to the plate's top edge rather than a fixed negative top: the type
+     is clamped and a hard offset would collide with the artifact at the large
+     end of the scale. */
+  .hint {
+    position: absolute; z-index: 2;
+    right: 0; bottom: calc(100% + 0.85rem);
+    font-size: clamp(1.05rem, 0.85rem + 0.9vw, 1.7rem);
+    /* 1.55, not 1: Bodoni's ascent+descent is ~1.54em, and an inline box is
+       sized by those font metrics rather than by line-height. At line-height:1
+       the mark's content area (42px of it, for 27px type) overflowed this
+       wrapper's box by ~7px below — and the underline paints at the BOTTOM of
+       that content area, not the wrapper's. So the wrapper measured 8.8px clear
+       of the plate while the underline was 2px off it, and `bottom` did not mean
+       what it said. At 1.55 the box contains its own ink and the offset is real. */
+    line-height: 1.55;
+    --mark-line: 3px;   /* 2px reads as a hairline under type this size */
+  }
+  /* "Hover it!" is a lie on a touch screen — there is no hover, and WorkArtifact
+     already drops the duotone to full colour under @media (hover: none), so
+     there is nothing to hover FOR. Telling a phone user to do the impossible is
+     worse than saying nothing. */
+  @media (hover: none) { .hint { display: none; } }
+
+  @media (max-width: 820px) {
+    .lede { grid-template-columns: 1fr; }
+    .art { order: -1; }
+    .title { max-width: none; }
+    /* The plate moves to the top of the block here, so the label would sit off
+       the page above it. */
+    .hint { display: none; }
+  }
+</style>

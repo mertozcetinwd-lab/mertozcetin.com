@@ -1,0 +1,137 @@
+---
+// The destination, not the call to action. ContactCta stays as the closing
+// section on the other pages; this is where it points.
+//
+// No form. There's no backend to receive one, and a form that silently drops a
+// message is worse than an address that works — especially for the one page
+// whose entire job is being reachable.
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Footer from '../components/Footer.astro';
+import Plate from '../components/Plate.astro';
+import { meta, socials, primaryContact, liveCount } from '../data/site.js';
+
+// What a recruiter actually wants to know before writing: will this reach him,
+// when will he answer, and is he even looking. Answer all three without being asked.
+const facts = [
+  { k: 'Status', v: meta.status },
+  { k: 'Based', v: `${meta.location} · ${meta.hours}` },
+  { k: 'Reply', v: 'Same day, usually' },
+  { k: 'Shipped', v: `${liveCount} builds` },
+];
+---
+
+<Base
+  title={`Contact — ${meta.name}`}
+  description={`Reach Mert Ozcetin — ${meta.status.toLowerCase()}.`}
+>
+  <PageHead
+    eyebrow="Contact"
+    title="Let's talk"
+    lead="The fastest way to reach me is LinkedIn. I read everything and I answer."
+  />
+
+  <section class="reach">
+    <div class="wrap grid">
+      <div class="main">
+        <p class="eyebrow reveal">{primaryContact.label}</p>
+        <a class="big reveal" href={primaryContact.href} target="_blank" rel="noopener noreferrer">
+          {primaryContact.show} <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+
+        <p class="eyebrow reveal ml">Elsewhere</p>
+        <ul class="links reveal">
+          {socials.filter((s) => s.label !== primaryContact.label).map((s) => (
+            <li>
+              <a href={s.href}
+                 target={s.href.startsWith('http') ? '_blank' : undefined}
+                 rel={s.href.startsWith('http') ? 'noopener noreferrer' : undefined}>
+                {s.label} <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+
+        <p class="note reveal">
+          If you're hiring: the work is at <a href="/work">/work</a>, and every repo
+          linked there is public. Read the code before you write, if you like.
+        </p>
+      </div>
+
+      <aside class="side reveal">
+        <dl class="facts">
+          {facts.map((f) => (
+            <div class="fact"><dt>{f.k}</dt><dd>{f.v}</dd></div>
+          ))}
+        </dl>
+        <div class="art"><Plate kind="flow" seed={7} ratio="4 / 3" /></div>
+      </aside>
+    </div>
+  </section>
+
+  <Footer />
+</Base>
+
+<style>
+  .reach { padding-block: clamp(2.5rem, 8vh, 5rem) clamp(3rem, 9vh, 6rem); }
+  .grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: clamp(1.8rem, 5vw, 4.5rem); }
+
+  .eyebrow { margin-bottom: 0.9rem; }
+  .eyebrow.ml { margin-top: 3rem; }
+
+  /* The address is long and mono is wide — this clamp keeps it on one line down
+     to small phones rather than breaking mid-URL. */
+  .big {
+    display: inline-flex; align-items: center; gap: 0.4ch; flex-wrap: wrap;
+    font-family: var(--font-mono);
+    font-size: clamp(0.95rem, 0.3rem + 3vw, 2.4rem);
+    font-weight: 500; line-height: 1.1; letter-spacing: -0.03em;
+    color: var(--text);
+    border-bottom: 1px solid var(--hair-2); padding-bottom: 0.2em;
+    transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+  .big:hover { color: var(--accent); border-color: var(--accent); }
+  .arrow { display: inline-block; color: var(--accent); transition: transform 0.3s var(--ease); }
+  .big:hover .arrow { transform: translate(0.15em, -0.15em); }
+
+  .links { display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem; }
+  .links a {
+    display: inline-flex; align-items: center; gap: 0.5ch;
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--text);
+    border-bottom: 1px solid var(--hair-2); padding-bottom: 0.3rem;
+    transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+  .links a:hover { color: var(--accent); border-color: var(--accent); }
+
+  .note {
+    font-family: var(--font-mono);
+    font-size: var(--step-small); line-height: 1.7; color: var(--text-dim);
+    max-width: 46ch; margin-top: 3rem;
+  }
+  .note a { color: var(--text); border-bottom: 1px solid var(--hair-2); }
+  .note a:hover { border-color: var(--accent); color: var(--accent); }
+
+  .facts { border-top: 1px solid var(--hair-2); }
+  .fact {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding-block: 0.8rem; border-bottom: 1px solid var(--hair);
+    font-family: var(--font-mono);
+    font-size: var(--step-small); letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .fact dt { color: var(--muted); flex: none; }
+  .fact dd { color: var(--text); text-align: right; }
+
+  .art {
+    margin-top: 1.8rem;
+    border: 1px solid var(--hair);
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+
+  @media (max-width: 820px) {
+    .grid { grid-template-columns: 1fr; }
+    .side { max-width: 420px; }
+  }
+</style>

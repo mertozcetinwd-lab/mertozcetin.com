@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Strategy Report Automation</title>
+<!--
+  Composed from phase3-automations_2 (repo: phase3-automations2):
+  README   — n8n -> Trigger.dev -> Claude-written report -> .docx -> Google Drive
+  src/     — schema.ts (zod), lib/llm.ts, lib/docx.ts, lib/drive.ts,
+             trigger/generate-report.ts
+  payload  — { companyName, industry, challenge, goal }
+  CI       — .github/workflows/deploy.yml (deploy to Trigger.dev on push to main)
+-->
+<style>
+  :root{
+    --bg:#0f1115; --panel:#161920; --panel2:#12141a; --line:#272b35;
+    --ink:#eef1f6; --dim:#98a1b2; --faint:#616a7a;
+    --green:#4ec98a; --violet:#a99bff; --accent:#6ea8fe; --amber:#e6b45a;
+    --doc:#ffffff; --doc-ink:#20242b; --doc-dim:#6b7280; --doc-line:#e5e7eb;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --serif:"Iowan Old Style",Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+  .win{width:1300px;height:1040px;display:flex;flex-direction:column;overflow:hidden}
+
+  .bar{display:flex;align-items:center;gap:12px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--green)}
+  .bar .t{font-weight:600}
+  .bar .ci{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--green);border:1px solid var(--green);border-radius:5px;padding:3px 9px}
+
+  .chain{display:flex;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .step{flex:1;padding:14px 20px;border-right:1px solid var(--line);position:relative}
+  .step:last-child{border-right:0}
+  .step .n{font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+  .step .s{font-weight:600;margin-top:4px;font-size:13px}
+  .step .ok{position:absolute;top:14px;right:18px;font-family:var(--mono);font-size:11px;color:var(--green)}
+
+  .body{flex:1;display:grid;grid-template-columns:0.78fr 1.22fr;min-height:0}
+  .col{padding:22px 24px;overflow:hidden}
+  .col.left{border-right:1px solid var(--line)}
+  .h{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+
+  .code{font-family:var(--mono);font-size:11.5px;line-height:1.75;background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:14px 15px}
+  .code .k{color:var(--accent)} .code .s2{color:var(--green)} .code .p{color:var(--faint)}
+
+  .log{font-family:var(--mono);font-size:11px;line-height:1.9;margin-top:18px}
+  .log .ts{color:var(--faint)} .log .g{color:var(--green)} .log .v{color:var(--violet)} .log .m{color:var(--dim)}
+
+  .doc{background:var(--doc);color:var(--doc-ink);border-radius:5px;height:100%;padding:34px 40px;font-family:var(--serif);
+       box-shadow:0 18px 50px rgba(0,0,0,.45);overflow:hidden;display:flex;flex-direction:column}
+  .doc .brandline{font-family:var(--mono);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--doc-dim);margin-bottom:20px}
+  .doc h1{font-size:27px;line-height:1.18;font-weight:600;margin-bottom:5px;letter-spacing:-.01em}
+  .doc .sub{font-family:var(--mono);font-size:10px;color:var(--doc-dim);letter-spacing:.06em;margin-bottom:20px}
+  .doc hr{border:0;border-top:1.5px solid var(--doc-ink);margin-bottom:18px}
+  .doc h2{font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--doc-dim);margin:16px 0 7px;font-weight:600}
+  .doc p{font-size:12.5px;line-height:1.65;color:#2f343d;margin-bottom:9px}
+  .doc ul{margin:0 0 9px 15px;padding:0}
+  .doc li{font-size:12.5px;line-height:1.6;color:#2f343d;margin-bottom:5px}
+  .doc .foot{margin-top:auto;border-top:1px solid var(--doc-line);padding-top:11px;
+             font-family:var(--mono);font-size:9px;color:var(--doc-dim);display:flex;justify-content:space-between}
+
+  .foot{border-top:1px solid var(--line);padding:11px 24px;font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;gap:20px;background:var(--panel2)}
+  .foot .g{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <span class="dot"></span>
+    <span class="t">generate-report</span>
+    <span style="font-family:var(--mono);font-size:11px;color:var(--faint)">trigger.dev</span>
+    <span class="ci">✓ deployed by GitHub Actions on push to main</span>
+  </div>
+
+  <div class="chain">
+    <div class="step"><div class="n">01 · trigger</div><div class="s">n8n payload</div><span class="ok">✓</span></div>
+    <div class="step"><div class="n">02 · write</div><div class="s">Claude</div><span class="ok">✓</span></div>
+    <div class="step"><div class="n">03 · render</div><div class="s">docx</div><span class="ok">✓</span></div>
+    <div class="step"><div class="n">04 · deliver</div><div class="s">Google Drive</div><span class="ok">✓</span></div>
+  </div>
+
+  <div class="body">
+    <div class="col left">
+      <div class="h">Payload</div>
+      <div class="code">
+{<br>
+&nbsp;&nbsp;<span class="k">"companyName"</span>: <span class="s2">"Whitfield Heating &amp; Air"</span>,<br>
+&nbsp;&nbsp;<span class="k">"industry"</span>: <span class="s2">"HVAC / home services"</span>,<br>
+&nbsp;&nbsp;<span class="k">"challenge"</span>: <span class="s2">"Quote turnaround</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="s2">takes days, leads go cold"</span>,<br>
+&nbsp;&nbsp;<span class="k">"goal"</span>: <span class="s2">"Same-day quotes</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="s2">without adding headcount"</span><br>
+}
+      </div>
+
+      <div class="log">
+        <div><span class="ts">09:14:02</span> <span class="m">task run started</span></div>
+        <div><span class="ts">09:14:02</span> <span class="g">ok</span> <span class="m">payload valid (zod)</span></div>
+        <div><span class="ts">09:14:03</span> <span class="v">claude</span> <span class="m">drafting report…</span></div>
+        <div><span class="ts">09:14:19</span> <span class="g">ok</span> <span class="m">6 sections · 1,240 words</span></div>
+        <div><span class="ts">09:14:19</span> <span class="v">docx</span> <span class="m">rendering document</span></div>
+        <div><span class="ts">09:14:20</span> <span class="g">ok</span> <span class="m">report.docx · 38 KB</span></div>
+        <div><span class="ts">09:14:20</span> <span class="v">drive</span> <span class="m">uploading…</span></div>
+        <div><span class="ts">09:14:22</span> <span class="g">ok</span> <span class="m">→ /Strategy Reports/</span></div>
+        <div><span class="ts">09:14:22</span> <span class="g">done</span> <span class="m">20.1s · no prompts</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="h">Output · report.docx</div>
+      <div class="doc">
+        <div class="brandline">Client Optimal · Strategy Report</div>
+        <h1>Same-day quoting without adding headcount</h1>
+        <div class="sub">Whitfield Heating &amp; Air · HVAC / home services · 2026-07-16</div>
+        <hr>
+
+        <h2>Executive summary</h2>
+        <p>Quote turnaround is the binding constraint on close rate. Leads arrive warm and cool while waiting on a hand-built estimate. The fix is not more estimators; it is removing the retyping between intake and quote.</p>
+
+        <h2>The current path</h2>
+        <ul>
+          <li>Call notes captured by hand, then retyped into the CRM.</li>
+          <li>Estimates assembled per job from prior quotes.</li>
+          <li>Turnaround measured in days; competitors quote same-day.</li>
+        </ul>
+
+        <h2>Recommendation</h2>
+        <p>Template the estimate against job type and hours, and let intake write the quote directly. Keep a human on approval, not on data entry.</p>
+
+        <h2>Expected effect</h2>
+        <ul>
+          <li>Quote issued the same day intake completes.</li>
+          <li>Estimator time moves from typing to reviewing.</li>
+          <li>No new headcount required.</li>
+        </ul>
+
+        <h2>Next step</h2>
+        <p>Instrument current turnaround for two weeks to set a baseline before changing anything.</p>
+
+        <div class="foot"><span>Generated · Claude</span><span>Page 1 of 3</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>n8n → trigger.dev <span style="color:var(--violet)">generate-report</span> → Claude → docx → Drive</span>
+    <span class="g">✓ unattended · errors handled · every step logged</span>
+  </div>
+</div>
+</body>
+</html>

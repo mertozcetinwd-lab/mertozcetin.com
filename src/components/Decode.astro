@@ -1,0 +1,56 @@
+---
+// Mono body copy that decodes when it scrolls into view.
+//
+// Renders ONLY the twin spans — no wrapper element, deliberately. The parent
+// must own the block element (<p class="tag">…</p>), because Astro scopes a
+// component's styles to elements in that component's OWN template. When this
+// file rendered the <p> itself, the element carried THIS component's scope, so
+// the parent's `.tag { … }` compiled to a selector that could never match, and
+// Astro then treeshook those rules out of the build as unused. The hero tagline
+// silently had no max-width, no font-size, no margin and no entrance animation
+// for several passes, and raising the margin did nothing because the rule did
+// not exist. Same for all six capability descriptions.
+//
+// So: parent owns the element and the styling; this owns the a11y twins only.
+//
+// The duplicate is not redundancy — scramble() rewrites textContent frame by
+// frame, so a screen reader parked on that node would announce junk. The
+// sr-only twin holds the real, stable string and is the only copy in the
+// accessibility tree; the visible twin is aria-hidden and free to churn.
+//
+// No-JS renders the real text and stops.
+//
+// `mark`: the one word/phrase in `text` to hand to <Mark>. It CANNOT simply be
+// nested inside a decoding span — scramble() assigns textContent, which would
+// delete the <Mark> element on the first frame. So the string is split around
+// the phrase and each side decodes as its own independent run, with the Mark
+// sitting untouched between them. The sr-only twins still concatenate to the
+// original sentence, so the accessibility tree reads it whole.
+import Mark from './Mark.astro';
+
+interface Props {
+  text: string;
+  dur?: number;   // decode duration in ms
+  mark?: string;  // substring of `text` to render as an accent Mark
+}
+const { text, dur = 620, mark } = Astro.props;
+
+const at = mark ? text.indexOf(mark) : -1;
+// A `mark` that isn't in `text` is a typo at the call site, not a reason to drop
+// it silently — fail loudly at build rather than ship a mark that never renders.
+if (mark && at === -1) {
+  throw new Error(`Decode: mark ${JSON.stringify(mark)} not found in text ${JSON.stringify(text)}`);
+}
+const before = at === -1 ? text : text.slice(0, at);
+const after = at === -1 ? '' : text.slice(at + mark!.length);
+---
+
+{at === -1 ? (
+  <span class="sr-only">{text}</span><span aria-hidden="true" data-decode={dur}>{text}</span>
+) : (
+  <Fragment>
+    <span class="sr-only">{before}</span><span aria-hidden="true" data-decode={dur}>{before}</span
+    ><Mark>{mark}</Mark
+    ><span class="sr-only">{after}</span><span aria-hidden="true" data-decode={dur}>{after}</span>
+  </Fragment>
+)}

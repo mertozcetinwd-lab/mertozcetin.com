@@ -1,0 +1,99 @@
+---
+// What he builds, as text. These are categories, not evidence, so they get no
+// imagery — the plate above already showed the real thing.
+//
+// The descs decode as they scroll in: mono body under a settled serif heading,
+// which is the split the whole type system is built on.
+import { capabilities } from '../data/site.js';
+import Decode from './Decode.astro';
+import Plate from './Plate.astro';
+
+// Each cell gets its own code-drawn plate. The kind is chosen to match what the
+// capability actually is rather than assigned round-robin — the round-robin
+// engravings on the old site were exactly the "arbitrary decoration" problem.
+//
+// 'graph' and 'radial' render a CANVAS, not SVG. Marching dashes on fixed
+// geometry read as a diagram; drifting nodes read as a live system, and a live
+// system is the honest picture of an agent. SVG can't do it — a <line> can't
+// follow a translated <circle>, so the endpoints must be recomputed per frame.
+// Only these two are canvas (3 on the site, all IntersectionObserver-gated).
+//
+// Agents and Research were BOTH 'graph' with different seeds, which meant the
+// same 2-2-1 pipeline drawn twice — the reason they read as the same picture.
+// They're different shapes now because they're different things: an agent is a
+// sequence (chain), research converges perspectives onto one synthesis and maps
+// where they disagree (radial).
+const KIND = ['flow', 'graph', 'contour', 'radial', 'contour', 'flow'];
+const isCanvas = (k) => k === 'graph' || k === 'radial';
+---
+
+<section class="caps" id="capabilities">
+  <div class="wrap">
+    <div class="section-tag reveal">
+      <span>What I build</span>
+      <span>Capabilities</span>
+    </div>
+
+    <ul class="grid">
+      {capabilities.map((c, i) => (
+        <li class="cell reveal" style={`--i:${i % 3}`}>
+          <div class="art">
+            {isCanvas(KIND[i])
+              ? <canvas data-plate data-seed={i + 1} data-shape={KIND[i] === 'radial' ? 'radial' : 'chain'}
+                        data-nodes="sparse" aria-hidden="true"></canvas>
+              : <Plate kind={KIND[i]} seed={i + 1} ratio="16 / 9" />}
+          </div>
+          <span class="tag">{c.tag}</span>
+          <h3 class="title display">{c.title}</h3>
+          {/* <p> owned here, not by Decode — see the note in Decode.astro. */}
+          <p class="desc"><Decode text={c.desc} dur={560} /></p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .caps { padding-block: clamp(2.5rem, 8vh, 5.5rem); }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.6rem, 3.5vw, 3rem);
+    /* Was clamp(1rem, 3vw, 2rem) = 32px, which pushed the six cells away from
+       the label that names them. The label heads this grid; keep it attached. */
+    padding-top: clamp(0.5rem, 1vw, 0.9rem);
+  }
+  .cell { border-top: 1px solid var(--hair); padding-top: 1.2rem; }
+
+  .art {
+    margin-bottom: 1.1rem;
+    border: 1px solid var(--hair);
+    background: var(--bg-2);
+    overflow: hidden;
+    transition: border-color 0.3s var(--ease);
+  }
+  .cell:hover .art { border-color: var(--hair-2); }
+  /* The canvas cells must match the SVG plates' box exactly, or the two 'graph'
+     cells collapse to zero height and the grid goes ragged. */
+  .art canvas { display: block; width: 100%; aspect-ratio: 16 / 9; }
+
+  .tag {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);
+    margin-bottom: 0.8rem;
+  }
+  .title {
+    font-size: var(--step-h3);
+    line-height: 1.05; margin-bottom: 0.7rem;
+  }
+  .desc {
+    font-family: var(--font-mono);
+    color: var(--text-dim); font-size: var(--step-small);
+    line-height: 1.65; max-width: 34ch;
+  }
+
+  @media (max-width: 820px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+</style>

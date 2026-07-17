@@ -1,0 +1,73 @@
+---
+// Homepage only. This component used to be rendered on /about as well, which is
+// why the About page's main paragraph was the homepage's paragraph verbatim.
+// /about now has its own content; this is the teaser that points at it.
+import { meta, stack } from '../data/site.js';
+---
+
+<section class="about" id="about">
+  <div class="wrap grid">
+    <div class="left">
+      <div class="section-tag reveal">
+        <span>About</span>
+        <span>Profile</span>
+      </div>
+      <p class="lead reveal">{meta.intro}</p>
+      <a class="more reveal" href="/about">
+        The longer version <span aria-hidden="true">→</span>
+      </a>
+    </div>
+
+    <div class="right reveal">
+      <dl class="facts">
+        <div class="fact"><dt>Focus</dt><dd>{meta.role}</dd></div>
+        <div class="fact"><dt>Studio</dt><dd>{meta.brand}</dd></div>
+        <div class="fact"><dt>Status</dt><dd>{meta.status}</dd></div>
+        <div class="fact"><dt>Based</dt><dd>{meta.location}</dd></div>
+      </dl>
+      <div class="stack">
+        <span class="eyebrow">Stack</span>
+        <div class="chips">
+          {stack.map((s) => <span class="chip">{s}</span>)}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about { padding-block: clamp(2.5rem, 7vh, 5rem); border-top: 1px solid var(--hair); }
+  .grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(1.6rem, 4vw, 4rem); }
+
+  .lead {
+    font-family: var(--font-display);
+    font-weight: 500; font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3); letter-spacing: var(--ls-display);
+    line-height: 1.28; max-width: 26ch; margin-top: 0.8rem; color: var(--text);
+  }
+  .more {
+    display: inline-flex; align-items: center; gap: 0.7ch; margin-top: 1.8rem;
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--text);
+    border-bottom: 1px solid var(--hair-2); padding-bottom: 0.35rem;
+    transition: border-color 0.25s var(--ease);
+  }
+  .more:hover { border-color: var(--text); }
+
+  .facts { border-top: 1px solid var(--hair); margin-bottom: 2rem; }
+  .fact {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding-block: 0.8rem; border-bottom: 1px solid var(--hair);
+    font-size: var(--step-small); letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .fact dt { color: var(--muted); }
+  .fact dd { color: var(--text); text-align: right; }
+
+  .stack .eyebrow { display: block; margin-bottom: 0.9rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+  @media (max-width: 820px) {
+    .grid { grid-template-columns: 1fr; }
+    .lead { max-width: none; }
+  }
+</style>

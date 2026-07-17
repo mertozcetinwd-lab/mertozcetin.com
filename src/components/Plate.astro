@@ -1,0 +1,233 @@
+---
+// Code-drawn, non-figurative plates. The site draws its own art.
+//
+// This is Mert's own standing rule from decisions/log.md (2026-07-06): "non-
+// figurative core generated in code... generating art in code makes it original,
+// copyright-free, faceless, and on-brand (the site draws its own plates)". That
+// system was deleted in the 6affbd4 strip-down; this is it, rebuilt.
+//
+// Build-time SVG rather than a runtime canvas, deliberately: it costs zero
+// client JS, ships no image files, scales to any size, recolours for free from
+// CSS custom properties, and can appear a dozen times on a page without the
+// jank that a dozen canvases would cause.
+//
+// Every kind is honest to what he actually builds rather than 18th-century
+// cosplay: an agent system IS a directed graph; a pipeline IS a flow field.
+
+// No `class` prop, and its absence is deliberate: nothing passed one, and a
+// class handed in from a parent would land on an element carrying THIS
+// component's scope hash — so the parent's rule compiles to a selector that can
+// never match, and Astro treeshakes it as unused. Four silent bugs in this
+// codebase have come from that. Parents wrap instead — see the .hint wrapper in
+// FeaturedWork.astro for the pattern.
+interface Props {
+  kind?: 'graph' | 'flow' | 'contour';
+  seed?: number;
+  ratio?: string;
+}
+const { kind = 'graph', seed = 1, ratio = '4 / 3' } = Astro.props;
+
+const W = 400;
+const H = 300;
+
+// mulberry32 — 4 lines, deterministic. Seeded so a given plate is IDENTICAL on
+// every build; an unseeded generator would churn the diff on every deploy and
+// make each rebuild a visual coin-flip.
+function rng(a: number) {
+  return function () {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const r = rng(seed * 2654435761);
+const rand = (lo: number, hi: number) => lo + r() * (hi - lo);
+
+type Node = { x: number; y: number; rad: number };
+let nodes: Node[] = [];
+let edges: [number, number][] = [];
+let paths: string[] = [];
+let rings: string[] = [];
+
+if (kind === 'graph') {
+  // A directed agent graph: a few sources fanning into workers, converging on a sink.
+  const cols = 4;
+  const per = [2, 3, 3, 1];
+  let idx = 0;
+  const colIdx: number[][] = [];
+  for (let c = 0; c < cols; c++) {
+    const list: number[] = [];
+    for (let i = 0; i < per[c]; i++) {
+      const x = 44 + (c * (W - 88)) / (cols - 1);
+      const y = (H / (per[c] + 1)) * (i + 1) + rand(-16, 16);
+      nodes.push({ x, y, rad: c === cols - 1 ? 7 : rand(3, 5.5) });
+      list.push(idx++);
+    }
+    colIdx.push(list);
+  }
+  // connect each column forward; skip a few so it reads as a real graph, not a mesh
+  for (let c = 0; c < cols - 1; c++) {
+    for (const a of colIdx[c]) {
+      for (const b of colIdx[c + 1]) {
+        if (r() > 0.42) edges.push([a, b]);
+      }
+    }
+  }
+  // guarantee no orphans — a dangling node reads as a bug, not a composition
+  for (let c = 0; c < cols - 1; c++) {
+    for (const a of colIdx[c]) {
+      if (!edges.some(([f]) => f === a)) edges.push([a, colIdx[c + 1][0]]);
+    }
+  }
+} else if (kind === 'flow') {
+  // Streamlines through a smooth pseudo-noise field: a pipeline, drawn.
+  const ang = (x: number, y: number) =>
+    Math.sin(x * 0.011 + seed) * 1.6 + Math.cos(y * 0.013 - seed * 0.7) * 1.6;
+  for (let i = 0; i < 26; i++) {
+    let x = rand(-20, W * 0.35);
+    let y = rand(0, H);
+    let d = `M${x.toFixed(1)},${y.toFixed(1)}`;
+    for (let s = 0; s < 46; s++) {
+      const a = ang(x, y);
+      x += Math.cos(a) * 9 + 4.5; // bias rightward so it reads as flow, not drift
+      y += Math.sin(a) * 9;
+      if (x > W + 20 || y < -20 || y > H + 20) break;
+      d += `L${x.toFixed(1)},${y.toFixed(1)}`;
+    }
+    paths.push(d);
+  }
+} else {
+  // Concentric contours — depth and texture, nothing representational.
+  for (let i = 0; i < 13; i++) {
+    const rr = 16 + i * 13;
+    const pts: string[] = [];
+    for (let a = 0; a <= 360; a += 12) {
+      const rad = (a * Math.PI) / 180;
+      const wob = Math.sin(rad * 3 + i * 0.6 + seed) * (5 + i * 0.7);
+      const x = W / 2 + Math.cos(rad) * (rr + wob) * 1.25;
+      const y = H / 2 + Math.sin(rad) * (rr + wob) * 0.82;
+      pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    }
+    rings.push('M' + pts.join('L') + 'Z');
+  }
+}
+---
+
+<svg
+  class="plate"
+  viewBox={`0 0 ${W} ${H}`}
+  style={`--ratio:${ratio}`}
+  role="presentation"
+  aria-hidden="true"
+  preserveAspectRatio="xMidYMid slice"
+>
+  {/* pathLength="1" is the enabling trick: it normalises every path/line to a
+      length of 1 regardless of its real geometry, so ONE dash-offset keyframe
+      animates all of them without measuring anything at runtime.
+      --i staggers each element; it's written at build time, so the whole thing
+      animates with zero client JS. */}
+  {kind === 'graph' && (
+    <g>
+      {edges.map(([a, b], i) => (
+        <line
+          x1={nodes[a].x.toFixed(1)} y1={nodes[a].y.toFixed(1)}
+          x2={nodes[b].x.toFixed(1)} y2={nodes[b].y.toFixed(1)}
+          class="edge" pathLength="1" style={`--i:${i}`}
+        />
+      ))}
+      {nodes.map((n, i) => (
+        <circle cx={n.x.toFixed(1)} cy={n.y.toFixed(1)} r={n.rad.toFixed(1)}
+                class={i === nodes.length - 1 ? 'node sink' : 'node'}
+                style={`--i:${i}`} />
+      ))}
+    </g>
+  )}
+  {kind === 'flow' && (
+    <g>{paths.map((d, i) => <path d={d} class="stream" pathLength="1" style={`--i:${i}`} />)}</g>
+  )}
+  {kind === 'contour' && (
+    <g>{rings.map((d, i) => <path d={d} class="ring" pathLength="1" style={`--i:${i}`} />)}</g>
+  )}
+</svg>
+
+<style>
+  .plate {
+    display: block; width: 100%; aspect-ratio: var(--ratio);
+    overflow: hidden;
+  }
+  /* Everything inherits from the tri-tone, so a theme swap recolours the art for
+     free — no second asset, no duotone filter needed. */
+
+  /* All animation below is CSS on inline SVG. No canvas: six canvases each
+     running a render loop is exactly the jank this design avoids, and it buys
+     nothing SVG can't do. It's GPU-composited, costs zero client JS, and
+     the motion opt-out is already handled by the global block in tokens.css
+     — so there's no new gating code and no new way to get it wrong.
+
+     Everything is slow and low-amplitude on purpose. Six figures all twitching
+     would read worse than six static ones. */
+
+  /* EVERY kind must LOOP. This is not a style preference — a finite animation on
+     content two screens down is invisible by definition: it finishes long before
+     anyone scrolls to it. `graph` used to run a one-shot `draw` at page load and
+     `contour` breathed so faintly it read as static, which is exactly why 4 of
+     the 6 figures looked dead while the 2 `flow` ones (infinite) looked fine.
+     Same class of bug as a load-timed effect playing to an empty viewport. */
+
+  /* graph — dashes travelling the edges: data moving through the network toward
+     the sink. Same proven mechanic as .stream, run slower so the two kinds don't
+     read as the same figure twice. */
+  .edge {
+    stroke: var(--text); stroke-width: 0.75; opacity: 0.28;
+    stroke-dasharray: 0.12 0.055;
+    animation: march 11s linear infinite;
+    animation-delay: calc(var(--i, 0) * -700ms);  /* negative = mid-flight already, no startup wave */
+  }
+
+  .node {
+    fill: none; stroke: var(--text); stroke-width: 1.1; opacity: 0.55;
+    transform-box: fill-box; transform-origin: center;
+    animation: nodeBreathe 4.5s var(--ease) infinite;
+    animation-delay: calc(var(--i, 0) * -380ms);
+  }
+  @keyframes nodeBreathe {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 0.9; }
+  }
+
+  /* The sink is the one ember thing in the figure, so it gets the heartbeat. */
+  .sink {
+    fill: var(--accent); stroke: var(--accent); opacity: 0.9;
+    animation: sinkPulse 3.4s var(--ease) infinite;
+  }
+  @keyframes sinkPulse {
+    0%, 100% { opacity: 0.9; }
+    50%      { opacity: 0.42; }
+  }
+
+  .stream {
+    fill: none; stroke: var(--text); stroke-width: 0.7; opacity: 0.24;
+    stroke-linecap: round;
+    /* marching dashes — reads as current moving through a pipeline */
+    stroke-dasharray: 0.06 0.04;
+    animation: march 9s linear infinite;
+    animation-delay: calc(var(--i, 0) * -420ms);
+  }
+  @keyframes march { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -1; } }
+
+  /* contour — the rings ripple OUTWARD in sequence. The old version breathed
+     .2 -> .42 over 7s with every ring in unison, which is a fade nobody can see.
+     A positive stagger makes it propagate; more amplitude makes it visible. */
+  .ring {
+    fill: none; stroke: var(--text); stroke-width: 0.7; opacity: 0.16;
+    animation: breathe 5s var(--ease) infinite;
+    animation-delay: calc(var(--i, 0) * 180ms);
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.16; }
+    45%      { opacity: 0.5; }
+  }
+
+  /* The motion opt-out these plates used to answer to is gone — see tokens.css. */
+</style>

@@ -1,0 +1,62 @@
+---
+// The band under the hero: Didone words drifting past, ember stars between.
+//
+// CSS-driven, not JS. The baseline ran this off a gsap ticker, which meant a
+// ~70KB dependency and a rAF callback firing forever just to translate one
+// element. Duplicating the track and animating it -50% is seamless (the second
+// copy is exactly where the first began when the loop restarts) and costs
+// nothing but a keyframe.
+import { marquee } from '../data/site.js';
+
+// Three copies. The animation travels exactly one copy's width, so the seam
+// always lands on identical content — but that only holds while
+//     container <= (COPIES - 1) x copy_width.
+// One copy is ~3.8k px at a 1920 viewport, so the two copies this shipped with
+// were fine on any normal display and would have torn a visible hole above
+// ~3840px. Same arithmetic that was actively breaking the header strip; fixed
+// here too rather than left as a bug waiting for someone's ultrawide.
+const COPIES = 3;
+const items = Array.from({ length: COPIES }, () => marquee).flat();
+---
+
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    {items.map((m) => (
+      <span class="item display">
+        {m}<span class="sep">✦</span>
+      </span>
+    ))}
+  </div>
+</div>
+
+<style>
+  .marquee {
+    border-block: 1px solid var(--hair);
+    background: var(--bg-2);
+    overflow: hidden;
+    padding-block: clamp(0.9rem, 2vw, 1.5rem);
+  }
+
+  /* -33.333% == exactly one of the three copies. */
+  @keyframes drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-33.333%, 0, 0); } }
+  .track {
+    display: flex; align-items: center; gap: 2.4rem;
+    width: max-content;
+    /* 46s -> 88s -> 120s -> 200s, and the units moved with the copy count: the
+       duration now covers ONE copy (a third of the track), not half of it. At
+       1920 that's ~19px/s, down from ~32. It only exists to be read in passing,
+       and slower is the whole point; there's no lower bound worth defending. */
+    animation: drift 200s linear infinite;
+    will-change: transform;
+  }
+  /* No hover pause. It used to stop under the cursor so the words could be read,
+     but a band that halts when you look at it reads as broken, not helpful. */
+
+  .item {
+    display: inline-flex; align-items: center; gap: 2.4rem;
+    font-size: clamp(1.5rem, 3.6vw, 3.2rem);
+    line-height: 1; text-transform: uppercase; white-space: nowrap;
+    color: var(--text);
+  }
+  .sep { color: var(--accent); font-size: 0.4em; }
+</style>

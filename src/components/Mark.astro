@@ -1,0 +1,16 @@
+---
+// An accent phrase whose underline draws itself when it scrolls in.
+//
+// Used THREE times on the whole site, and the restraint is the point: ember is
+// this design's signal colour. The live dot, the section markers and the
+// artifact hover all lean on it meaning "look here". Spend it on every other
+// sentence and it stops meaning anything anywhere.
+//
+// All styling lives in tokens.css under `.mark` — global, because this renders
+// inline inside other components' text and a scoped class would only ever match
+// here. See the note there on why it's weight 500 and not 700.
+interface Props { display?: boolean }
+const { display = false } = Astro.props;
+---
+
+<span class:list={['mark', display && 'on-display']}><slot /></span>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Estimate Desk</title>
+<!--
+  Composed from N8N_TO_APP/README.md + CLAUDE.md:
+  QuoteForm (React) → POST /api/quote (Vercel fn) → n8n webhook
+  QuoteCard (React) ← structured JSON ← n8n
+  Inputs: project description, estimated hours, client type.
+-->
+<style>
+  :root{
+    --bg:#faf9f7; --card:#ffffff; --line:#e4e1db; --line2:#d3cfc7;
+    --ink:#1b1a17; --dim:#6c6860; --faint:#9a958c;
+    --accent:#2f6f4f; --accent-soft:#eaf2ed;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+  .win{width:1300px;height:1040px;display:flex;flex-direction:column;overflow:hidden}
+
+  .bar{display:flex;align-items:center;gap:11px;padding:15px 26px;border-bottom:1px solid var(--line);background:var(--card)}
+  .logo{font-weight:700;letter-spacing:-.02em}
+  .bar .tag{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+  .bar .url{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--faint)}
+
+  .body{flex:1;display:grid;grid-template-columns:0.85fr 1.15fr;min-height:0}
+  .col{padding:26px 28px;overflow:hidden}
+  .col.left{border-right:1px solid var(--line)}
+  .h{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:16px}
+
+  .field{margin-bottom:14px}
+  .field .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+  .field .v{background:var(--card);border:1px solid var(--line2);border-radius:6px;padding:10px 12px;font-size:13px}
+  .field .v.msg{color:var(--dim);line-height:1.55;font-size:12px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .go{margin-top:16px;background:var(--accent);color:#fff;font-weight:600;text-align:center;padding:11px;border-radius:7px;font-size:13px}
+
+  .quote{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:24px 26px;height:100%;display:flex;flex-direction:column}
+  .qh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:16px}
+  .qh .t{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  .qh .m{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:right;line-height:1.7}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);text-align:left;padding-bottom:9px;font-weight:500}
+  th.r,td.r{text-align:right}
+  td{padding:10px 0;border-top:1px solid var(--line)}
+  td .d{color:var(--dim);font-size:11px;margin-top:2px}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  .totals{margin-top:auto;border-top:2px solid var(--ink);padding-top:14px}
+  .tr{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;color:var(--dim)}
+  .tr.big{font-size:20px;font-weight:700;color:var(--ink);padding-top:10px}
+  .tr .n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .badge{display:inline-block;margin-top:14px;background:var(--accent-soft);color:var(--accent);border-radius:5px;padding:6px 10px;
+         font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+
+  .foot{border-top:1px solid var(--line);padding:12px 26px;font-family:var(--mono);font-size:11px;color:var(--faint);
+        display:flex;gap:20px;background:var(--card)}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <span class="logo">Estimate Desk</span>
+    <span class="tag">n8n quote generator</span>
+    <span class="url">/api/quote → n8n webhook</span>
+  </div>
+
+  <div class="body">
+    <div class="col left">
+      <div class="h">Brief</div>
+      <div class="field">
+        <div class="k">Project description</div>
+        <div class="v msg">Two-page marketing site with a booking form that writes into their CRM. Needs a staging URL for sign-off.</div>
+      </div>
+      <div class="row2">
+        <div class="field"><div class="k">Est. hours</div><div class="v">38</div></div>
+        <div class="field"><div class="k">Client type</div><div class="v">Small business</div></div>
+      </div>
+      <div class="go">Generate quote</div>
+      <div class="h" style="margin-top:26px">Contract</div>
+      <div class="field">
+        <div class="k">Response</div>
+        <div class="v msg" style="font-family:var(--mono);font-size:11px">{ lineItems[], subtotal,<br>&nbsp;&nbsp;discount, total, currency }</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="quote">
+        <div class="qh">
+          <div>
+            <div class="t">Quotation</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px">Whitfield Heating &amp; Air</div>
+          </div>
+          <div class="m">
+            QUO-2026-0142<br>
+            2026-07-16<br>
+            valid 30 days
+          </div>
+        </div>
+
+        <table>
+          <thead><tr><th>Item</th><th class="r">Hrs</th><th class="r">Rate</th><th class="r">Amount</th></tr></thead>
+          <tbody>
+            <tr><td>Discovery &amp; scope<div class="d">Requirements, sitemap, sign-off</div></td><td class="r num">4</td><td class="r num">$95</td><td class="r num">$380</td></tr>
+            <tr><td>Design<div class="d">Two pages, mobile + desktop</div></td><td class="r num">10</td><td class="r num">$95</td><td class="r num">$950</td></tr>
+            <tr><td>Build<div class="d">Static build, staging deploy</div></td><td class="r num">16</td><td class="r num">$110</td><td class="r num">$1,760</td></tr>
+            <tr><td>Booking form → CRM<div class="d">Webhook, mapping, retry</div></td><td class="r num">6</td><td class="r num">$110</td><td class="r num">$660</td></tr>
+            <tr><td>QA &amp; handover<div class="d">Cross-browser, docs</div></td><td class="r num">2</td><td class="r num">$95</td><td class="r num">$190</td></tr>
+          </tbody>
+        </table>
+
+        <div class="totals">
+          <div class="tr"><span>Subtotal</span><span class="n">$3,940</span></div>
+          <div class="tr"><span>Small-business adjustment (8%)</span><span class="n">−$315</span></div>
+          <div class="tr big"><span>Total</span><span class="n">$3,625</span></div>
+          <span class="badge">Ready to send</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>React + Vite → Vercel fn (webhook stays server-side) → n8n</span>
+    <span style="margin-left:auto">N8N_WEBHOOK_URL unset → local mock, app still runs</span>
+  </div>
+</div>
+</body>
+</html>

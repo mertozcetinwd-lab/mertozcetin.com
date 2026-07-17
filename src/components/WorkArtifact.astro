@@ -1,0 +1,98 @@
+---
+// A real project capture, and the only place colour exists on this site.
+//
+// At rest the plate is neutral grey: the colour master sits underneath a duotone
+// overlay whose opacity drops on hover. (filter: url() -> none can't transition;
+// opacity can, hence the two layers.) One colour capture serves both themes — the
+// shared #duotone filter in Base.astro does the per-theme recolour via duotone.js.
+//
+// `bloom` teaches the rule to someone who never hovers: the plate loads in full
+// colour, holds, then settles to grey. motion.js strips the attribute after the
+// hold and CSS fades it down. If JS never runs the plate just stays in colour,
+// which is a fine place to fail.
+// Two dead props removed rather than left as traps:
+//   `hint` rendered a "Hover to see it live." caption and NOTHING ever passed
+//     it — the job it was written for is now the .hint label in FeaturedWork,
+//     and two mechanisms for one caption is how you end up shipping both.
+//   `class` was never passed either, and it is precisely the Astro scope trap:
+//     a class handed in from a parent lands on an element carrying THIS
+//     component's hash, so the parent's rule compiles to a selector that can
+//     never match and gets treeshaken. Parents wrap instead — see the .hint
+//     wrapper in FeaturedWork.astro for the pattern.
+interface Props {
+  src: string;
+  alt?: string;
+  ratio?: string;
+  focus?: string; // object-position
+  bloom?: number; // ms to hold full colour on load; omit for no bloom
+}
+const {
+  src,
+  alt = 'Real project artifact',
+  ratio = '5 / 4',
+  focus = 'center top',
+  bloom,
+} = Astro.props;
+---
+
+<figure class="artifact" style={`--ratio:${ratio};--focus:${focus}`} data-bloom={bloom}>
+  <div class="frame">
+    <img class="real" src={src} alt={alt} loading="lazy" decoding="async" />
+    <img class="duo" src={src} alt="" aria-hidden="true" loading="lazy" decoding="async" />
+    <span class="halftone" aria-hidden="true"></span>
+  </div>
+</figure>
+
+<style>
+  .artifact { position: relative; width: 100%; }
+  .frame {
+    position: relative; overflow: hidden;
+    aspect-ratio: var(--ratio);
+    border: 1px solid var(--hair-2);
+    background: var(--bg);
+    transition: border-color 0.4s var(--ease);
+  }
+  .frame img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: var(--focus);
+  }
+  .real { z-index: 0; }
+
+  /* the grey plate — slow to settle, quick to lift */
+  .duo {
+    z-index: 1;
+    filter: url(#duotone) contrast(1.04);
+    opacity: 1;
+    transition: opacity 0.8s var(--ease);
+  }
+  .halftone {
+    position: absolute; inset: 0; z-index: 2; pointer-events: none;
+    background-image: radial-gradient(var(--duo-shadow) 0.5px, transparent 0.6px);
+    background-size: 4px 4px;
+    opacity: 0.12; mix-blend-mode: multiply;
+    transition: opacity 0.8s var(--ease);
+  }
+  /* :global() is load-bearing. Written bare, Astro scopes the whole chain and
+     emits `[data-astro-cid-x][data-theme=dark] .halftone[data-astro-cid-x]` —
+     but data-theme lives on <html>, which carries no component scope, so the
+     rule never matched and dark theme silently kept the light multiply blend. */
+  :global([data-theme='dark']) .halftone { mix-blend-mode: screen; opacity: 0.08; }
+
+  /* load-bloom: start in colour, no transition in, then let the base rule fade it down */
+  .artifact[data-bloom] .duo,
+  .artifact[data-bloom] .halftone { opacity: 0; transition: none; }
+
+  .artifact:hover .duo,
+  .artifact:focus-within .duo,
+  .artifact:hover .halftone,
+  .artifact:focus-within .halftone { opacity: 0; transition: opacity 0.3s var(--ease); }
+
+  .artifact:hover .frame,
+  .artifact:focus-within .frame { border-color: var(--text); }
+
+  @media (hover: none) {
+    /* touch has no hover, so the plate just shows the real thing */
+    .duo, .halftone { opacity: 0; }
+  }
+</style>

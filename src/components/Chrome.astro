@@ -1,0 +1,198 @@
+---
+// Fixed top bar + bottom status line.
+//
+// The email marquee and the ticking clock that used to live here are gone: a
+// scrolling email address is decoration wearing information's clothes, and a
+// clock that reads the visitor's own system time tells them nothing.
+// The status line keeps only what's true and useful: what Mert wants, and where
+// he is in the build.
+import { meta, nav, contactStrip } from '../data/site.js';
+
+// SIX copies, and the count is arithmetic rather than taste.
+//
+// A marquee that translates by exactly one copy tiles without a gap only while
+//     strip_width <= (COPIES - 1) x copy_width
+// One copy of contactStrip is ~725px. With the two copies this shipped with, the
+// strip had to stay under ~725px — but it's ~1120px at a 1920 viewport, so the
+// last ~400px of every cycle was genuinely EMPTY. The edge mask just made the
+// hole fade out politely instead of looking like the bug it was. That's the
+// "goes blank" Mert reported. Removing the Motion toggle widened it further.
+//
+// At 6 the strip can grow to ~3.6k px before the gap returns, which covers any
+// plausible display. If contactStrip ever loses an entry, re-check this.
+const COPIES = 6;
+const strip = Array.from({ length: COPIES }, () => contactStrip).flat();
+---
+
+<header class="chrome-top">
+  <a href="/" class="brand">Mert Ozcetin</a>
+
+  {/* Fills the dead space between the brand and the nav. This is the strip I
+      deleted in 6affbd4 as "decoration pretending to be information" — back,
+      because with LinkedIn added and every href real it IS information now. */}
+  <div class="strip" aria-label="Contact">
+    <div class="track">
+      {strip.map((c, i) => (
+        <a href={c.href}
+           target={c.href.startsWith('http') ? '_blank' : undefined}
+           rel={c.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+           {...(i >= contactStrip.length ? { 'aria-hidden': 'true', tabindex: '-1' } : {})}>
+          {c.show}<span class="sep" aria-hidden="true">✦</span>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <nav class="links" aria-label="Primary">
+    {nav.map((n) => <a href={n.href}>{n.label}</a>)}
+  </nav>
+
+  <div class="themes" role="group" aria-label="Mode">
+    <button type="button" data-theme-set="light" title="Light mode">Light</button>
+    <button type="button" data-theme-set="dark" title="Dark mode">Dark</button>
+  </div>
+</header>
+
+<div class="chrome-bot">
+  <span class="seg"><span class="live-dot" aria-hidden="true"></span>{meta.status}</span>
+
+  {/* Mert's clock, not the visitor's. A recruiter in London reads this and knows
+      he's five hours behind and whether a reply is coming tonight. The old
+      version showed the VISITOR's own time, which told them nothing they
+      couldn't read off their own taskbar. */}
+  <span class="seg center">
+    <span data-clock aria-hidden="true">--:--:--</span> · {meta.tzLabel}
+  </span>
+
+  <span class="seg right">{meta.version}</span>
+</div>
+
+<style>
+  .chrome-top {
+    position: fixed; inset: 0 0 auto 0; z-index: 100;
+    height: var(--chrome-top);
+    display: flex; align-items: stretch; gap: 1rem;
+    padding-inline: var(--gutter);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--hair);
+  }
+  .brand {
+    /* margin-right:auto is gone — the strip's flex:1 takes the slack now, and
+       leaving both in means the auto margin wins and the strip collapses. */
+    display: flex; align-items: center; flex: none;
+    /* Pulls the brand out of the header's gutter to sit ~24px from the edge, so
+       it anchors the corner. This deliberately BREAKS the left/right mirror —
+       the Mode buttons stay at the gutter (42px at 1920), and Mert chose that
+       with the tradeoff in front of him.
+       min(0px, …) is load-bearing, not defensive: --gutter is a clamp that
+       bottoms out at 1.1rem, so below ~1180px the gutter is already NARROWER
+       than 1.5rem and a bare calc() would resolve positive and shove the brand
+       RIGHT — the opposite of the ask, on the screen with the least room to
+       give. Clamped at zero, the nudge just fades out as the gutter closes. */
+    margin-left: min(0px, calc(1.5rem - var(--gutter)));
+    font-family: var(--font-display);
+    font-variation-settings: 'opsz' 28, 'wght' 700;
+    font-size: 0.95rem; font-weight: 700;
+    letter-spacing: 0.02em; text-transform: uppercase; color: var(--text);
+    white-space: nowrap;
+  }
+
+  /* The strip takes the slack between brand and nav; the brand no longer needs
+     margin-right:auto to push things apart. */
+  .strip {
+    flex: 1; min-width: 0; overflow: hidden;
+    display: flex; align-items: center;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 4rem, #000 calc(100% - 4rem), transparent);
+  }
+  /* -16.667% == exactly one of the six copies, so the loop restarts on identical
+     content. Travel distance is unchanged from the old 2-copy/-50% version, so
+     90s still means the same ~8px/s — the fix adds copies, not speed. */
+  @keyframes slide { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-16.667%, 0, 0); } }
+  .strip .track {
+    display: flex; align-items: center; gap: 1.6rem;
+    width: max-content; white-space: nowrap;
+    animation: slide 90s linear infinite;
+    will-change: transform;
+  }
+  /* No hover pause. It had one on the "interactive things stop so you can use
+     them" argument; Mert overruled it, and at ~8px/s a link takes ~25s to cross
+     the strip, so the click target was never really at risk. */
+  .strip a {
+    display: inline-flex; align-items: center; gap: 1.6rem;
+    font-size: 0.62rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+    transition: color var(--t-fast) var(--ease-snap);
+  }
+  .strip a:hover { color: var(--text); }
+  .strip .sep { color: var(--accent); opacity: 0.7; font-size: 0.5em; }
+
+  .links { display: flex; align-items: stretch; }
+  .links a {
+    padding-inline: 0.9rem; display: inline-flex; align-items: center;
+    font-size: var(--step-eyebrow); font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    transition: color var(--t-fast) var(--ease-snap);
+  }
+  .links a:hover { color: var(--text); }
+
+  .themes { display: flex; align-items: center; gap: 0.3rem; padding-left: 0.6rem; flex: none; }
+  .themes button {
+    font-family: var(--font-mono); font-size: 0.6rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--hair-2); background: transparent;
+    padding: 0.34em 0.5em; cursor: pointer;
+    transition: color var(--t-fast) var(--ease-snap),
+                border-color var(--t-fast) var(--ease-snap),
+                background-color var(--t-fast) var(--ease-snap);
+  }
+  .themes button:hover { color: var(--text); border-color: var(--text); }
+  .themes button[aria-pressed='true'] {
+    color: var(--bg); background: var(--text); border-color: var(--text);
+  }
+
+  .chrome-bot {
+    position: fixed; inset: auto 0 0 0; z-index: 100;
+    height: var(--chrome-bot);
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding-inline: var(--gutter);
+    font-size: 0.6rem; font-weight: 500;
+    letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+    background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--hair);
+  }
+  .chrome-bot .seg { display: inline-flex; align-items: center; gap: 0.95ch; }
+  .chrome-bot .center {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    gap: 0.6ch;
+  }
+  /* tabular-nums stops the whole line jittering as the seconds tick */
+  .chrome-bot [data-clock] { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+  /* Nav has to survive small screens — it used to display:none below 540px,
+     which left phones with no way out of the page. Dropping the redundant 'Home'
+     link (the brand does that job) buys back enough room to keep everything.
+     Order of sacrifice as the bar narrows: strip first, then the bottom bar's
+     clock and version stamp. The nav and Mode always hold. */
+  @media (max-width: 1000px) {
+    /* A ticker needs room to read as a ticker; below this it's a jittering
+       fragment. The same three links live in the footer and on /contact. */
+    .strip { display: none; }
+    .brand { margin-right: auto; }
+  }
+  @media (max-width: 640px) {
+    .brand { font-size: 0.85rem; letter-spacing: 0.01em; }
+    .links a { padding-inline: 0.5rem; font-size: 0.6rem; letter-spacing: 0.06em; }
+    .themes button { font-size: 0.55rem; padding: 0.3em 0.4em; letter-spacing: 0.04em; }
+    /* The status line wins the bottom bar on a phone; the clock and the version
+       stamp both go rather than collide with it. */
+    .chrome-bot .right, .chrome-bot .center { display: none; }
+  }
+  @media (max-width: 400px) {
+    .brand { font-size: 0.78rem; }
+    .links a { padding-inline: 0.34rem; font-size: 0.55rem; letter-spacing: 0.01em; }
+    .themes { padding-left: 0.3rem; }
+  }
+</style>

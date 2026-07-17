@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Clay → Claude cold-email pipeline</title>
+<!--
+  Composed from the REAL column shape of
+  Desktop/AI Stuff/Clay LeadGen/hvac_home_service_leads_50.csv:
+
+    full_name title company_name domain email phone location industry size
+    pain_point      <- the analysis step
+    notable_detail  <- the recent-signal step
+    subject / body  <- the generated cold-email copy
+
+  EVERY LEAD BELOW IS FABRICATED. The real file holds actual names, emails and
+  phone numbers for 50 businesses — that is other people's contact data and it
+  does not go on a public page. Same call as the inbox-digest artifact. The
+  SHAPE is true; the people are not.
+-->
+<style>
+  :root{
+    --bg:#0d0f13; --panel:#151821; --panel2:#111319; --line:#252a35;
+    --ink:#e9edf4; --dim:#98a1b2; --faint:#5e6675;
+    --green:#4ec98a; --amber:#e6b45a; --violet:#a99bff; --accent:#6ea8fe; --pink:#e57ba8;
+    --mail:#ffffff; --mail-ink:#1f2328; --mail-line:#e5e7eb; --mail-dim:#6b7280;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+  .win{width:1300px;height:1040px;display:flex;flex-direction:column;overflow:hidden}
+
+  .bar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .tl{display:flex;gap:6px;margin-right:6px}
+  .tl i{width:10px;height:10px;border-radius:50%;display:block}
+  .tl i:nth-child(1){background:#ff5f57}.tl i:nth-child(2){background:#febc2e}.tl i:nth-child(3){background:#28c840}
+  .bar .t{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .bar .wsl{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--violet);
+            border:1px solid var(--violet);border-radius:4px;padding:2px 8px}
+
+  .body{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0}
+  .col{overflow:hidden;display:flex;flex-direction:column}
+  .col.left{border-right:1px solid var(--line);background:var(--panel2)}
+  .h{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+     padding:14px 20px 10px;border-bottom:1px solid var(--line)}
+
+  /* terminal */
+  .term{padding:14px 20px;font-family:var(--mono);font-size:11.5px;line-height:1.75;overflow:hidden}
+  .term .p{color:var(--green)}
+  .term .c{color:var(--ink)}
+  .term .m{color:var(--dim)}
+  .term .g{color:var(--green)}
+  .term .a{color:var(--amber)}
+  .term .v{color:var(--violet)}
+  .term .b{color:var(--accent)}
+  .term .dim{color:var(--faint)}
+  .bar2{display:inline-block;width:120px;height:7px;background:#20242e;border-radius:3px;overflow:hidden;vertical-align:middle;margin:0 7px}
+  .bar2 i{display:block;height:100%;background:var(--green)}
+  .cur{display:inline-block;width:7px;height:13px;background:var(--ink);vertical-align:-2px;margin-left:3px}
+
+  /* enriched row */
+  .lead{padding:14px 20px;border-bottom:1px solid var(--line)}
+  .lead .nm{font-weight:600;font-size:14px}
+  .lead .co{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:2px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:11px}
+  .kv .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding-top:2px;white-space:nowrap}
+  .kv .v{font-size:12px;line-height:1.5;color:var(--ink)}
+  .kv .v.pain{color:var(--amber)}
+  .kv .v.sig{color:var(--pink)}
+
+  /* email */
+  .mail{margin:16px 20px;background:var(--mail);color:var(--mail-ink);border-radius:7px;overflow:hidden;
+        box-shadow:0 14px 40px rgba(0,0,0,.4);flex:1;display:flex;flex-direction:column}
+  .mhead{padding:12px 16px;border-bottom:1px solid var(--mail-line);background:#f7f8fa}
+  .mrow{display:flex;gap:8px;font-size:11.5px;padding:2px 0}
+  .mrow .k{color:var(--mail-dim);width:38px;flex:none;font-family:var(--mono);font-size:10px;padding-top:2px}
+  .mrow .v{color:var(--mail-ink)}
+  .mrow .v.subj{font-weight:700}
+  .mbody{padding:16px;font-size:12.5px;line-height:1.7;color:#2f343d;flex:1}
+  .mbody p{margin-bottom:10px}
+  .hl{background:#fff3cd;border-radius:2px;padding:0 2px}
+  .hl2{background:#fde8f1;border-radius:2px;padding:0 2px}
+  .sig{margin-top:14px;padding-top:11px;border-top:1px solid var(--mail-line);font-size:11.5px;color:var(--mail-dim);line-height:1.6}
+
+  .foot{border-top:1px solid var(--line);padding:11px 20px;font-family:var(--mono);font-size:11px;color:var(--faint);
+        display:flex;gap:18px;background:var(--panel2)}
+  .foot .g{color:var(--green)}
+  .legend{margin-left:auto;display:flex;gap:12px}
+  .legend b{font-weight:400}
+  .legend .y{color:var(--amber)} .legend .p{color:var(--pink)}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <span class="tl"><i></i><i></i><i></i></span>
+    <span class="t">mert@wsl:~/clay-leadgen</span>
+    <span class="wsl">WSL 2 · Ubuntu 24.04</span>
+  </div>
+
+  <div class="body">
+    <div class="col left">
+      <div class="h">Terminal — Claude Code</div>
+      <div class="term">
+        <div><span class="p">➜</span> <span class="c">claude</span> <span class="m">"enrich these leads and write the emails"</span></div>
+        <div class="m">&nbsp;</div>
+        <div><span class="v">▸</span> <span class="c">read</span> <span class="m">clay_export.csv</span> <span class="g">50 rows</span></div>
+        <div class="dim">&nbsp;&nbsp;source: Clay · HVAC / home services · US</div>
+        <div class="m">&nbsp;</div>
+        <div><span class="b">01</span> <span class="c">qualify</span><span class="bar2"><i style="width:100%"></i></span><span class="g">50/50</span></div>
+        <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;size, role seniority, ICP fit</div>
+        <div><span class="b">02</span> <span class="c">analyse</span><span class="bar2"><i style="width:100%"></i></span><span class="g">50/50</span></div>
+        <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;→ pain_point</div>
+        <div><span class="b">03</span> <span class="c">signal</span><span class="bar2"><i style="width:100%"></i></span><span class="g">47/50</span></div>
+        <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;→ notable_detail · recent news, hiring, reviews</div>
+        <div><span class="a">&nbsp;&nbsp;&nbsp;&nbsp;warn</span> <span class="m">3 leads: no public signal — generic open</span></div>
+        <div><span class="b">04</span> <span class="c">write</span><span class="bar2"><i style="width:100%"></i></span><span class="g">50/50</span></div>
+        <div class="dim">&nbsp;&nbsp;&nbsp;&nbsp;→ subject + body, grounded in 02 &amp; 03</div>
+        <div class="m">&nbsp;</div>
+        <div><span class="g">✓</span> <span class="c">wrote</span> <span class="m">hvac_home_service_leads_50.csv</span></div>
+        <div class="dim">&nbsp;&nbsp;13 cols · 50 rows · avg body 357 chars</div>
+        <div class="m">&nbsp;</div>
+        <div><span class="p">➜</span> <span class="cur"></span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="h">One row, enriched → the email it produced</div>
+
+      <div class="lead">
+        <div class="nm">Dana Whitfield</div>
+        <div class="co">Operations Director · Whitfield Heating &amp; Air · 45 staff · Akron, OH</div>
+        <div class="kv">
+          <span class="k">pain_point</span>
+          <span class="v pain">Booking coordinator retypes every call note into the CRM by hand; quotes go out in days, not hours.</span>
+          <span class="k">notable_detail</span>
+          <span class="v sig">Posted two dispatcher roles this month and answers every Google review personally.</span>
+        </div>
+      </div>
+
+      <div class="mail">
+        <div class="mhead">
+          <div class="mrow"><span class="k">To</span><span class="v">dana@whitfieldheating.example</span></div>
+          <div class="mrow"><span class="k">Subj</span><span class="v subj">Two dispatchers, or one less thing to type</span></div>
+        </div>
+        <div class="mbody">
+          <p>Dana —</p>
+          <p>Saw you're <span class="hl2">hiring two dispatchers</span>, and that you answer the Google reviews yourself. That second one tells me more than the first.</p>
+          <p>Most shops your size add people because <span class="hl">the intake is manual</span> — the call comes in, someone writes it down, someone types it into the CRM, and the quote lands two days later. The headcount is real; the work usually isn't.</p>
+          <p>I build the thing that reads the call note and writes the quote. Same crew, quotes out the same day.</p>
+          <p>Worth fifteen minutes before the new hires start?</p>
+          <div class="sig">
+            Mert Ozcetin<br>
+            Client Optimal · AI automation
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Clay → Claude Code (WSL) → enriched CSV</span>
+    <span class="g">✓ every opener grounded in a real detail about that company</span>
+    <span class="legend">
+      <b class="y">▮ pain_point</b>
+      <b class="p">▮ notable_detail</b>
+    </span>
+  </div>
+</div>
+</body>
+</html>
