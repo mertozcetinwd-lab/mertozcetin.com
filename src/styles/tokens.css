@@ -109,7 +109,13 @@ body { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; 
 img, svg, canvas, video { display: block; max-width: 100%; }
 button, input, textarea { font: inherit; color: inherit; }
 a { color: inherit; text-decoration: none; }
-ul { list-style: none; padding: 0; }
+/* Both list types, deliberately. `ol` was missing here, and /services is the only
+   page that uses one: its <ol class="layers"> items stay display:list-item, so the
+   UA painted decimal markers ON TOP of the authored 01/02/03 spans, and (markers
+   being outside their own box) each one landed over the neighbouring grid column.
+   The same omission also indented <ol class="process"> by the UA's 40px, pushing
+   the whole Approach grid right of every other section. */
+ul, ol { list-style: none; padding: 0; }
 
 /* ============================================================ base */
 html {

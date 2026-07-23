@@ -7,7 +7,6 @@ import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
 import ContactCta from '../components/ContactCta.astro';
 import Footer from '../components/Footer.astro';
-import Plate from '../components/Plate.astro';
 import Mark from '../components/Mark.astro';
 import { meta } from '../data/site.js';
 
@@ -185,7 +184,12 @@ const process = [
       </div>
 
       <aside class="panel reveal">
-        <div class="art"><Plate kind="graph" seed={12} ratio="4 / 3" /></div>
+        {/* Canvas, not the SVG <Plate>. Site rule (see Capabilities.astro): 'graph'
+            and 'radial' render a canvas so the nodes actually drift and the edges
+            are recomputed per frame. This figure was the one graph on the site
+            still going through the SVG path, which only marches dashes over frozen
+            geometry — visibly a different animation from the homepage's. */}
+        <div class="art"><canvas data-plate data-seed="12" data-nodes="full" aria-hidden="true"></canvas></div>
         <dl>
           <div><dt>Best fit</dt><dd>Small businesses with repeated work</dd></div>
           <div><dt>Core build</dt><dd>AI automations, workflows, tools</dd></div>
@@ -353,6 +357,9 @@ const process = [
     border-bottom: 1px solid var(--hair);
     background: var(--bg-2);
   }
+  /* The canvas has no intrinsic size, so it must be given the box the SVG plate
+     used to occupy or it collapses to zero height. Same rule as Capabilities.astro. */
+  .panel .art canvas { display: block; width: 100%; aspect-ratio: 4 / 3; }
   .panel dl { padding: 1rem; }
   .panel div:not(.art) {
     display: grid;
@@ -450,17 +457,20 @@ const process = [
     gap: clamp(1.8rem, 5vw, 4rem);
     align-items: start;
   }
+  /* The three layers STACK rather than sitting 3-across. Three tracks inside the
+     1.1fr half of .framework-grid left roughly 117px of text per column, which
+     wrapped the copy into 13-character ribbons. Full width of the right column
+     gives each layer ~510px and lets the prose read normally. */
   .layers {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
     border: 1px solid var(--hair);
   }
   .layer {
     padding: clamp(1.2rem, 3vw, 1.8rem);
-    border-right: 1px solid var(--hair);
-    min-height: 18rem;
+    border-bottom: 1px solid var(--hair);
   }
-  .layer:last-child { border-right: 0; }
+  .layer:last-child { border-bottom: 0; }
   .layer h3 {
     font-family: var(--font-display);
     font-size: var(--step-h3);
@@ -505,15 +515,8 @@ const process = [
     .truth-grid {
       grid-template-columns: 1fr;
     }
-    .layers {
-      grid-template-columns: 1fr;
-    }
-    .layer {
-      min-height: 0;
-      border-right: 0;
-      border-bottom: 1px solid var(--hair);
-    }
-    .layer:last-child { border-bottom: 0; }
+    /* .layers/.layer need nothing here any more — stacking with bottom hairlines
+       is the base treatment now, at every width. */
   }
 
   @media (max-width: 760px) {
