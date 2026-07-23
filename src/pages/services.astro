@@ -1,0 +1,541 @@
+---
+// Working draft. No invented clients, testimonials, metrics, case studies, or
+// portfolio pieces. The page describes what Mert can build and how an engagement
+// would run. It treats the Contractor Business Framework as a deployable system
+// pattern, not a claimed client result.
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import ContactCta from '../components/ContactCta.astro';
+import Footer from '../components/Footer.astro';
+import Plate from '../components/Plate.astro';
+import Mark from '../components/Mark.astro';
+import { meta } from '../data/site.js';
+
+const services = [
+  {
+    idx: '01',
+    tag: 'Capture',
+    title: 'AI lead capture and follow-up',
+    body:
+      'Forms, landing pages, missed-call flows, inbox intake, and lead qualification that route a real prospect instead of letting it sit. The system can score the lead, summarize what they asked for, draft the first reply, create the task, and hand the conversation to the person who should own it.',
+    gets: [
+      'A lead intake flow wired into the tools you already use',
+      'Qualification rules written in plain language',
+      'Follow-up drafts or approved sends, depending on the risk',
+      'Notifications, task creation, and a visible trail of what happened',
+    ],
+  },
+  {
+    idx: '02',
+    tag: 'Resell',
+    title: 'Past-customer reactivation',
+    body:
+      'A clean way to work the list you already have. Past customers, old quotes, no-shows, dormant buyers, and old spreadsheet contacts can be segmented, messaged, tracked, and handed back to you when someone replies. The point is not a blast. The point is a controlled loop that reaches people with context.',
+    gets: [
+      'Customer list cleanup and segmentation',
+      'Message variants matched to the relationship and permission level',
+      'Approval before anything leaves under your name',
+      'Reply routing so the conversation lands where you actually check',
+    ],
+  },
+  {
+    idx: '03',
+    tag: 'Reputation',
+    title: 'Review and reputation systems',
+    body:
+      'A review engine that knows when to ask, where to send the customer, and when to leave the situation alone. For local service businesses, this can sit after a job is marked complete. For other businesses, it can sit after delivery, onboarding, support resolution, or a repeat purchase.',
+    gets: [
+      'Review request timing based on your real workflow',
+      'Different paths for happy, neutral, and unhappy customers',
+      'Owner alerts when a response needs a human',
+      'A simple record of who was asked, when, and what happened next',
+    ],
+  },
+  {
+    idx: '04',
+    tag: 'Workflow',
+    title: 'Intelligent business workflows',
+    body:
+      'The boring internal work: Gmail to ClickUp, quote intake to document, research to report, alerts to a tracked task. These are usually not flashy. They are the things that stop leaking attention once they run on their own.',
+    gets: [
+      'A mapped process before anything gets automated',
+      'Direct API wiring where it makes sense',
+      'Error paths, logs, and notifications',
+      'A small operating guide so you know how to use and change it',
+    ],
+  },
+  {
+    idx: '05',
+    tag: 'Website',
+    title: 'AI-integrated websites',
+    body:
+      'Static or lightweight sites with useful automation behind them: lead qualification, quote generation, booking preparation, content capture, internal dashboards, or a private workflow that starts when someone submits the right form.',
+    gets: [
+      'A fast front end that explains the offer clearly',
+      'Server-side handling for private keys and webhooks',
+      'AI only where it earns its keep',
+      'Deployment, domain setup, and basic handoff',
+    ],
+  },
+  {
+    idx: '06',
+    tag: 'Custom',
+    title: 'Custom AI systems',
+    body:
+      'When the work does not fit a template, the build starts from the operation itself. Research agents, document generators, lead scoring systems, internal tools, and multi-step automations all fit here. The test is simple: is there a repeated decision or handoff that software can help carry?',
+    gets: [
+      'A scoped build with clear inputs, outputs, and failure modes',
+      'Model prompts, rules, and configuration kept readable',
+      'A working system shipped into your existing stack',
+      'Monitoring or support matched to how risky the workflow is',
+    ],
+  },
+];
+
+const framework = [
+  {
+    layer: 'Reach',
+    body:
+      'Bring the right lead in and respond while the intent is still warm. Lead capture, missed-call handling, qualification, routing, and first follow-up live here.',
+  },
+  {
+    layer: 'Resell',
+    body:
+      'Work the people who already know the business. Past-customer campaigns, old quote follow-up, dormant buyer lists, and repeat-service reminders live here.',
+  },
+  {
+    layer: 'Reputation',
+    body:
+      'Turn completed work into trust. Review requests, unhappy-customer paths, owner alerts, and review tracking live here.',
+  },
+];
+
+const process = [
+  {
+    idx: '01',
+    title: 'Find the manual work',
+    body:
+      'We start with the actual operation, not a menu of tools. What keeps getting copied, checked, chased, rewritten, followed up, or forgotten? What happens when a lead comes in? What happens after the job? What breaks when nobody is watching?',
+  },
+  {
+    idx: '02',
+    title: 'Pick the first system worth building',
+    body:
+      'Not everything deserves automation. The first build should be narrow enough to ship and useful enough to matter. For a contractor, that might be Reach, Resell, or Reputation. For another business, it might be inbox triage, quoting, reporting, onboarding, or internal routing.',
+  },
+  {
+    idx: '03',
+    title: 'Map inputs, decisions, and handoffs',
+    body:
+      'Before building, the workflow gets written down: where data enters, what the AI is allowed to decide, what needs human approval, where the result goes, and what should happen when the system is unsure.',
+  },
+  {
+    idx: '04',
+    title: 'Build against real tools',
+    body:
+      'The system gets wired into the stack you already use where possible: email, CRM, calendar, forms, task tools, docs, spreadsheets, Stripe, or whatever actually runs the business. Direct APIs beat fragile middle layers when they are the cleaner option.',
+  },
+  {
+    idx: '05',
+    title: 'Test the boring paths',
+    body:
+      'The happy path is not enough. The build gets checked against missing fields, duplicate leads, API failures, bad model output, unclear inputs, and the moments where a person needs to approve before anything goes out.',
+  },
+  {
+    idx: '06',
+    title: 'Hand it off and keep watch',
+    body:
+      'You get the working system, the plain-English rules, and enough documentation to understand what it does. If the workflow is business-critical, support can include monitoring, fixes, tuning, and small improvements after real usage exposes the next bottleneck.',
+  },
+];
+---
+
+<Base
+  title={`Services & Approach - ${meta.name}`}
+  description="AI automation services and engagement process for businesses that need practical systems, workflows, and tools."
+>
+  <PageHead eyebrow="Services & Approach" title="Systems first. AI where it helps.">
+    <Fragment slot="lead">
+      I build AI-powered workflows, tools, and websites for businesses with real manual work
+      to remove. <Mark>No fake portfolio gloss</Mark>. This is the working shape of the offer.
+    </Fragment>
+  </PageHead>
+
+  <section class="intro">
+    <div class="wrap intro-grid">
+      <div class="copy reveal">
+        <p class="big">
+          The useful version of an AI agency is not a chatbot slapped onto a website.
+          It is a set of systems that catch work, move it, write the first draft,
+          ask for approval when needed, and leave a trail when something breaks.
+        </p>
+        <p>
+          Local service businesses are a strong fit because the work is concrete:
+          quote requests, missed calls, repeat customers, reviews, job follow-up,
+          scheduling, reminders. Pressure washing, lawn care, mobile detailing,
+          cleaning, home services, and similar operators all have the same basic
+          problem: the money is in the follow-up, and the follow-up is usually
+          sitting in somebody's head.
+        </p>
+        <p>
+          The same approach applies outside that niche. If the business has repeated
+          decisions, repeated communication, repeated documents, or repeated handoffs,
+          there is probably something worth building.
+        </p>
+      </div>
+
+      <aside class="panel reveal">
+        <div class="art"><Plate kind="graph" seed={12} ratio="4 / 3" /></div>
+        <dl>
+          <div><dt>Best fit</dt><dd>Small businesses with repeated work</dd></div>
+          <div><dt>Core build</dt><dd>AI automations, workflows, tools</dd></div>
+          <div><dt>Style</dt><dd>Direct APIs, readable rules, loud failures</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="services" id="services">
+    <div class="wrap">
+      <div class="section-tag reveal">
+        <span><span class="idx">◆</span> Services offered</span>
+        <span>What the client gets</span>
+      </div>
+
+      <ul class="service-list">
+        {services.map((s, i) => (
+          <li class="service reveal" style={`--i:${i % 3}`}>
+            <div class="service-head">
+              <span class="num">{s.idx}</span>
+              <span class="tag">{s.tag}</span>
+            </div>
+            <div class="service-main">
+              <h2 class="display">{s.title}</h2>
+              <p>{s.body}</p>
+            </div>
+            <ul class="gets" aria-label={`What you get with ${s.title}`}>
+              {s.gets.map((g) => <li>{g}</li>)}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="framework" id="contractor-framework">
+    <div class="wrap">
+      <div class="section-tag reveal">
+        <span><span class="idx">◆</span> Contractor Business Framework</span>
+        <span>Reach / Resell / Reputation</span>
+      </div>
+
+      <div class="framework-grid">
+        <div class="framework-copy reveal">
+          <h2 class="display">A concrete system for local service businesses.</h2>
+          <p>
+            The Contractor Business Framework is the clearest example of how this
+            gets packaged for pressure washing, lawn care, mobile detailing, and
+            similar service businesses. It is not one magic workflow. It is three
+            layers that cover the business before, during, and after the job.
+          </p>
+          <p>
+            A contractor does not need "AI transformation." They need more leads
+            answered, more old customers followed up with, and more happy customers
+            turned into public trust. The framework keeps those jobs separate so
+            each layer can be built, tested, and improved without pretending the
+            whole business changed overnight.
+          </p>
+        </div>
+
+        <ol class="layers">
+          {framework.map((f, i) => (
+            <li class="layer reveal" style={`--i:${i}`}>
+              <span class="layer-idx">{String(i + 1).padStart(2, '0')}</span>
+              <h3>{f.layer}</h3>
+              <p>{f.body}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="approach" id="approach">
+    <div class="wrap">
+      <div class="section-tag reveal">
+        <span><span class="idx">◆</span> Approach</span>
+        <span>Start to finish</span>
+      </div>
+
+      <ol class="process">
+        {process.map((p, i) => (
+          <li class="step reveal" style={`--i:${i % 3}`}>
+            <span class="step-num">{p.idx}</span>
+            <div>
+              <h2 class="display">{p.title}</h2>
+              <p>{p.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="truth">
+    <div class="wrap truth-grid">
+      <div class="section-tag reveal">
+        <span><span class="idx">◆</span> Ground rules</span>
+      </div>
+      <div class="truth-copy reveal">
+        <p>
+          No invented case studies. No fake reviews. No borrowed copy. No numbers
+          dressed up as proof. If a system has not produced a client result yet,
+          it does not get described like it has.
+        </p>
+        <p>
+          The honest proof right now is the public work: lead qualification,
+          research agents, document automation, inbox triage, quote generation,
+          and this site itself. The service page is a draft of what the agency
+          offers, not a trophy wall pretending the first clients already happened.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <ContactCta />
+  <Footer />
+</Base>
+
+<style>
+  .intro,
+  .services,
+  .framework,
+  .approach,
+  .truth {
+    border-bottom: 1px solid var(--hair);
+  }
+
+  .intro { padding-block: clamp(2.4rem, 7vh, 4.5rem); }
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: clamp(1.8rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  .copy { max-width: 66ch; }
+  .copy p,
+  .framework-copy p,
+  .truth-copy p {
+    color: var(--text-dim);
+    margin-bottom: 1.2rem;
+  }
+  .copy p:last-child,
+  .framework-copy p:last-child,
+  .truth-copy p:last-child {
+    margin-bottom: 0;
+  }
+  .copy .big {
+    font-family: var(--font-display);
+    font-size: var(--step-h3);
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+
+  .panel {
+    border: 1px solid var(--hair);
+    background: color-mix(in srgb, var(--panel) 72%, transparent);
+  }
+  .panel .art {
+    border-bottom: 1px solid var(--hair);
+    background: var(--bg-2);
+  }
+  .panel dl { padding: 1rem; }
+  .panel div:not(.art) {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 1rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--hair);
+    font-size: var(--step-small);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .panel div:last-child { border-bottom: 0; }
+  .panel dt { color: var(--muted); }
+  .panel dd { color: var(--text); }
+
+  .services,
+  .framework,
+  .approach,
+  .truth {
+    padding-block: clamp(2.5rem, 7vh, 5rem);
+  }
+
+  .service-list {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--hair-2);
+  }
+  .service {
+    display: grid;
+    grid-template-columns: 9rem minmax(0, 1fr) minmax(18rem, 0.7fr);
+    gap: clamp(1.2rem, 3vw, 2.5rem);
+    padding-block: clamp(1.6rem, 4vw, 2.6rem);
+    border-bottom: 1px solid var(--hair);
+  }
+  .service-head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .num,
+  .step-num,
+  .layer-idx {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-size: var(--step-eyebrow);
+    font-weight: 500;
+    letter-spacing: 0.14em;
+  }
+  .tag {
+    font-size: var(--step-eyebrow);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+  }
+  .service h2,
+  .process h2,
+  .framework-copy h2 {
+    font-size: var(--step-h3);
+    line-height: 1.03;
+    margin-bottom: 0.8rem;
+  }
+  .service-main p,
+  .step p,
+  .layer p {
+    color: var(--text-dim);
+  }
+  .gets {
+    display: grid;
+    gap: 0.7rem;
+    align-content: start;
+  }
+  .gets li {
+    position: relative;
+    padding-left: 1.2rem;
+    color: var(--text-dim);
+    font-size: var(--step-small);
+    line-height: 1.6;
+  }
+  .gets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 0.45rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .framework {
+    background: var(--bg-2);
+  }
+  .framework-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: clamp(1.8rem, 5vw, 4rem);
+    align-items: start;
+  }
+  .layers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--hair);
+  }
+  .layer {
+    padding: clamp(1.2rem, 3vw, 1.8rem);
+    border-right: 1px solid var(--hair);
+    min-height: 18rem;
+  }
+  .layer:last-child { border-right: 0; }
+  .layer h3 {
+    font-family: var(--font-display);
+    font-size: var(--step-h3);
+    font-variation-settings: 'opsz' 72, 'wght' 600;
+    line-height: 1;
+    margin-block: 1.2rem 0.8rem;
+  }
+
+  .process {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid var(--hair-2);
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 3.2rem minmax(0, 1fr);
+    gap: 1.2rem;
+    padding: clamp(1.4rem, 3vw, 2rem);
+    border-bottom: 1px solid var(--hair);
+  }
+  .step:nth-child(odd) { border-right: 1px solid var(--hair); }
+
+  .truth-grid {
+    display: grid;
+    grid-template-columns: 0.38fr 0.62fr;
+    gap: clamp(1.8rem, 5vw, 4rem);
+  }
+  .truth-copy {
+    font-family: var(--font-mono);
+    font-size: var(--step-lead);
+    line-height: 1.65;
+  }
+
+  @media (max-width: 980px) {
+    .service {
+      grid-template-columns: 6rem minmax(0, 1fr);
+    }
+    .gets {
+      grid-column: 2;
+    }
+    .framework-grid,
+    .truth-grid {
+      grid-template-columns: 1fr;
+    }
+    .layers {
+      grid-template-columns: 1fr;
+    }
+    .layer {
+      min-height: 0;
+      border-right: 0;
+      border-bottom: 1px solid var(--hair);
+    }
+    .layer:last-child { border-bottom: 0; }
+  }
+
+  @media (max-width: 760px) {
+    .intro-grid,
+    .process {
+      grid-template-columns: 1fr;
+    }
+    .panel { max-width: 440px; }
+    .service,
+    .step {
+      grid-template-columns: 1fr;
+    }
+    .service-head {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .gets {
+      grid-column: auto;
+    }
+    .step:nth-child(odd) {
+      border-right: 0;
+    }
+  }
+</style>

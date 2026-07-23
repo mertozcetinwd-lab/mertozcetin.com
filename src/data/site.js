@@ -44,6 +44,7 @@ export const meta = {
 // universal convention and buys back the space the nav needs on a phone.
 export const nav = [
   { label: 'Work', href: '/work' },
+  { label: 'Services', href: '/services' },
   { label: 'About', href: '/about' },
   // Was '/#contact' — an anchor to a section on whatever page you were already
   // on. There's a real page now, so this goes there.
