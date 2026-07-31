@@ -1,0 +1,350 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Footer from '../../components/Footer.astro';
+import Mark from '../../components/Mark.astro';
+import { meta } from '../../data/site.js';
+
+const rules = [
+  {
+    title: 'It will not act',
+    body: 'The script only writes JSON. It does not create ClickUp tasks, send replies, mark messages read, or touch the inbox. A human reviews the output and runs inbox-to-clickup.py separately.',
+  },
+  {
+    title: 'It will not invent tasks',
+    body: 'Newsletters, receipts, shipping alerts, onboarding welcomes and system notifications go into a no_action list with a reason. If a subject is too vague to know the real request ("Quick question", "Team lunch tomorrow?"), it also goes to no_action. Nothing is silently dropped.',
+  },
+  {
+    title: 'It will not invent due dates',
+    body: 'A due field is set only when the subject itself states a deadline. If there is no visible deadline, the field is omitted. A made-up date is worse than no date.',
+  },
+  {
+    title: 'It has only subject, sender and date',
+    body: 'It never sees the body, so it stays conservative. It classifies from what is visible, cites the source email by sender and subject, and refuses to pretend it knows more.',
+  },
+];
+
+const sample = {
+  input: 11,
+  tasks: 2,
+  noAction: 9,
+};
+
+const tasks = [
+  {
+    name: 'Review Q2 proposal',
+    priority: 2,
+    due: '2026-08-05',
+    markdown_content:
+      '**Email:** Aisha Khan - "Action required: review Q2 proposal by 2026-08-05" (Thu, 30 Jul 2026 10:20:00 -0400).\n\n**Request/action:** Review the Q2 proposal by 2026-08-05.',
+  },
+  {
+    name: 'Review updated contract',
+    priority: 2,
+    due: '2026-08-10',
+    markdown_content:
+      '**Email:** Jordan Lee - "Please review the updated contract by 2026-08-10" (Thu, 30 Jul 2026 09:50:00 -0400).\n\n**Request/action:** Review the updated contract by 2026-08-10.',
+  },
+];
+
+const noAction = [
+  {
+    subject: 'Domain registered - mertozcetin.com',
+    from: 'Cloudflare <noreply@cloudflare.com>',
+    why: 'auto-generated domain registration confirmation',
+  },
+  {
+    subject: 'Your HighLevel Voice AI Agency workshop starts Jul 6-7',
+    from: 'HighLevel <hello@gohighlevel.com>',
+    why: 'marketing event notification',
+  },
+  {
+    subject: 'Perplexity Weekly: new discovery features',
+    from: 'Perplexity <news@perplexity.ai>',
+    why: 'newsletter',
+  },
+  {
+    subject: 'Receipt for your purchase from Stripe',
+    from: 'Stripe <receipts@stripe.com>',
+    why: 'receipt',
+  },
+  {
+    subject: 'Invoice #1024 is due August 1, 2026',
+    from: 'QuickBooks <quickbooks@notification.intuit.com>',
+    why: 'auto-generated billing notification with due date but no explicit request',
+  },
+  {
+    subject: 'Welcome to Notion',
+    from: 'Notion <team@makenotion.com>',
+    why: 'onboarding welcome',
+  },
+  {
+    subject: 'Your Amazon order has shipped',
+    from: 'Amazon <shipment-tracking@amazon.com>',
+    why: 'shipping notification',
+  },
+  {
+    subject: 'Team lunch tomorrow?',
+    from: 'Dan Roberts <dan@exampleclient.com>',
+    why: 'subject too vague without body',
+  },
+  {
+    subject: 'New sign-in from Chrome on Windows',
+    from: 'Google <no-reply@accounts.google.com>',
+    why: 'system security alert',
+  },
+];
+---
+
+<Base
+  title={`Inbox Triage — Work — ${meta.name}`}
+  description="A judgment step between unread Gmail and ClickUp. It classifies each email as a task or no_action, cites its source, and never invents deadlines or actions."
+>
+  <PageHead
+    eyebrow="Case study"
+    title="Your team is doing work software should do"
+    lead="The missing step between Gmail and ClickUp: classify every unread email as a task or no_action, cite the source, and wait for a human before anything happens."
+  />
+
+  <article class="case">
+    <div class="wrap">
+      <section class="prose reveal">
+        <p class="big">
+          Most of what lands in an inbox is not a request. It is receipts, newsletters,
+          shipping alerts, and system noise. The real work is the decision: is this
+          asking me to do something? That decision is <Mark>repetitive and rule-based</Mark>,
+          which makes it a candidate for automation.
+        </p>
+        <p>
+          This script is the judgment layer. It pulls unread Gmail via gmail-unread.py,
+          reads subject, sender and date only, and routes each item to either a
+          ClickUp-ready task or a no_action list. The no_action list is kept visible so
+          nothing is silently dropped.
+        </p>
+        <p>
+          It is deliberately passive. It writes a JSON file. It does not create tasks,
+          send mail, or mark anything read. A human reviews the JSON, then runs
+          inbox-to-clickup.py if it looks right.
+        </p>
+      </section>
+
+      <section class="rules-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> What it will not do</span>
+          <span>Four rules</span>
+        </div>
+        <ul class="rules">
+          {rules.map((r, i) => (
+            <li class="rule reveal" style={`--i:${i % 2}`}>
+              <h2 class="display rt">{r.title}</h2>
+              <p class="rb">{r.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sample reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> Sample run</span>
+          <span>{sample.input} fixture emails</span>
+        </div>
+        <div class="sample-body">
+          <p class="big">
+            The fixture has {sample.input} synthetic unread emails. The script produced
+            {sample.tasks} tasks and {sample.noAction} no_action items. This is the real
+            output, not a mock-up.
+          </p>
+
+          <div class="table-wrap reveal">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Task</th>
+                  <th scope="col">Priority</th>
+                  <th scope="col">Due</th>
+                  <th scope="col">Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks.map((t) => (
+                  <tr>
+                    <td class="task-name">{t.name}</td>
+                    <td class="num">{t.priority}</td>
+                    <td class="num">{t.due}</td>
+                    <td class="source">{t.markdown_content.split('\n\n')[0].replace('**Email:** ', '')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <h3 class="list-head">no_action</h3>
+          <ul class="noaction">
+            {noAction.map((n) => (
+              <li>
+                <span class="na-subject">{n.subject}</span>
+                <span class="na-from">{n.from}</span>
+                <span class="na-why">{n.why}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section class="note reveal">
+        <p>
+          The fixture data is synthetic and contains no real personal information. The
+          output shown is what the script produced when run with
+          <code>--in scripts/inbox-triage.example.json</code>.
+        </p>
+      </section>
+    </div>
+  </article>
+
+  <Footer />
+</Base>
+
+<style>
+  .case { padding-block: clamp(2rem, 6vh, 4rem) clamp(2.5rem, 7vh, 5rem); }
+
+  .prose { max-width: 66ch; }
+  .prose p {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.3rem;
+    line-height: 1.75;
+  }
+  .prose .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+  .prose p:last-child { margin-bottom: 0; }
+
+  .rules-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.4rem, 3vw, 2.6rem);
+    padding-top: clamp(0.5rem, 1vw, 0.9rem);
+  }
+  .rule {
+    border-top: 1px solid var(--hair);
+    padding-top: 1.1rem;
+  }
+  .rt {
+    font-size: var(--step-h3);
+    line-height: 1.08;
+    margin-bottom: 0.6rem;
+  }
+  .rb {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-size: var(--step-small);
+    line-height: 1.7;
+  }
+
+  .sample { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .sample-body { max-width: 76ch; }
+  .sample-body .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    margin-top: 1.8rem;
+    border: 1px solid var(--hair);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+  }
+  thead th {
+    text-align: left;
+    padding: 0.8rem 1rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--hair);
+    background: color-mix(in srgb, var(--panel) 50%, transparent);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 0.9rem 1rem;
+    border-top: 1px solid var(--hair);
+    color: var(--text-dim);
+    vertical-align: top;
+  }
+  tbody tr:first-child td { border-top: 0; }
+  .task-name { color: var(--text); font-weight: 500; white-space: nowrap; }
+  .num { font-variant-numeric: tabular-nums; }
+  .source { max-width: 40ch; }
+
+  .list-head {
+    font-family: var(--font-mono);
+    font-size: var(--step-tag);
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2.2rem;
+    margin-bottom: 0.9rem;
+  }
+  .noaction {
+    border-top: 1px solid var(--hair);
+  }
+  .noaction li {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr 1fr;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--hair);
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    color: var(--text-dim);
+    align-items: baseline;
+  }
+  .na-subject { color: var(--text); }
+  .na-from { color: var(--text-dim); }
+  .na-why { color: var(--muted); }
+
+  .note {
+    margin-top: clamp(2.5rem, 7vh, 4rem);
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--hair-2);
+    background: color-mix(in srgb, var(--panel) 40%, transparent);
+  }
+  .note p {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 0;
+  }
+  .note code {
+    font-family: var(--font-mono);
+    color: var(--text);
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+    padding: 0.1em 0.35em;
+  }
+
+  @media (max-width: 900px) {
+    .rules { grid-template-columns: 1fr; }
+    .noaction li { grid-template-columns: 1fr; gap: 0.25rem; }
+  }
+</style>

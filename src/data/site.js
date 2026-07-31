@@ -210,10 +210,10 @@ export const projects = [
     role: 'Design + build',
     tags: ['Gmail API', 'ClickUp API', 'Python'],
     summary:
-      'Pulls unread Gmail, triages what actually needs action, emails a digest, and drops a dated to-do list into ClickUp.',
+      'Pulls unread Gmail, triages what actually needs action, and writes a ClickUp-ready task list for human review.',
     outcome: 'Collapses inbox triage into a single command.',
     status: 'live',
-    
+    links: [{ label: 'Case study', href: '/work/inbox-triage' }],
   },
   {
     // Source: C:\Users\Mert\Projects\N8N_TO_APP (repo: n8n-quote-generator).
