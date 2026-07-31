@@ -1,0 +1,200 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Footer from '../../components/Footer.astro';
+import Mark from '../../components/Mark.astro';
+import { meta } from '../../data/site.js';
+
+const rules = [
+  {
+    title: 'No quote, no claim',
+    body: 'A verdict only stands if it is tied to a verbatim line from the resume. The model can propose “met,” but the report does not see it until the supporting string is found in the source text.',
+  },
+  {
+    title: 'Silence is not absence',
+    body: 'A resume that never mentions Kubernetes is not evidence the candidate lacks it. “Not met” requires positive contrary evidence. Everything else is “unclear.”',
+  },
+  {
+    title: 'Nothing about the person',
+    body: 'Age, gender, nationality, race, religion, marital status, health and photographs are stripped before the text is sent anywhere. The system does not see them, store them, or report them.',
+  },
+];
+
+const run = {
+  resumes: 3,
+  requirements: 8,
+  outputs: 'index.html + 3 scorecard pages, each with a PDF',
+};
+---
+
+<Base
+  title={`Resume Screener — Work — ${meta.name}`}
+  description="A local resume screening tool that treats the model as a witness, not a judge. Every verdict must cite verbatim evidence from the resume."
+>
+  <PageHead
+    eyebrow="Case study"
+    title="Resume Screener"
+    lead="A hiring tool that refuses to let a model invent the justification for its answer."
+  />
+
+  <article class="case">
+    <div class="wrap">
+      <section class="prose reveal">
+        <p class="big">
+          Most AI screeners sound confident. They label a candidate “strong fit” and
+          write a paragraph of reasoning that <Mark>never existed in the resume</Mark>.
+          In hiring that is a legal exposure, not just an embarrassing bug.
+        </p>
+        <p>
+          This tool treats the model as a witness, not a judge. The model proposes a
+          verdict and a verbatim quote. Before the quote reaches the report, the pipeline
+          checks it against the actual resume text. If the quote is not found, the claim
+          is discarded and the verdict drops to “unclear.”
+        </p>
+      </section>
+
+      <section class="rules-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> Enforced in code</span>
+          <span>Three rules</span>
+        </div>
+        <ul class="rules">
+          {rules.map((r, i) => (
+            <li class="rule reveal" style={`--i:${i % 2}`}>
+              <h2 class="display rt">{r.title}</h2>
+              <p class="rb">{r.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="proof reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> Proof of concept</span>
+          <span>Local run</span>
+        </div>
+        <div class="proof-body">
+          <p class="big">
+            The pipeline was run against the sample job description and three synthetic
+            resumes. It parsed {run.requirements} requirements, processed {run.resumes} files,
+            and rendered {run.outputs}.
+          </p>
+          <p>
+            Each scorecard shows every requirement with its status badge, the confidence
+            grade, and the verbatim evidence quote beneath it. “Unclear” is rendered in
+            amber and marked with a question mark; “not met” is rendered in red and marked
+            with an X. They do not look the same because they mean different things.
+          </p>
+          <p>
+            The witness layer is designed to catch a lying model: a fabricated “met”
+            verdict citing a line that does not appear in the resume would have its
+            evidence stripped and the claim downgraded to “unclear.” A genuine quote in
+            the same batch would pass through untouched. The current <code>judge.py</code>
+            module is a stub that returns canned verdicts for plumbing tests, so that
+            verification step will be exercised once the judgment logic is wired in.
+          </p>
+        </div>
+      </section>
+
+      <section class="note reveal">
+        <p>
+          All sample resumes are synthetic and contain no real personal data. The names,
+          employers, and histories were invented for demonstration only.
+        </p>
+      </section>
+    </div>
+  </article>
+
+  <Footer />
+</Base>
+
+<style>
+  .case { padding-block: clamp(2rem, 6vh, 4rem) clamp(2.5rem, 7vh, 5rem); }
+
+  .prose { max-width: 66ch; }
+  .prose p {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.3rem;
+    line-height: 1.75;
+  }
+  .prose .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+  .prose p:last-child { margin-bottom: 0; }
+
+  .rules-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.4rem, 3vw, 2.6rem);
+    padding-top: clamp(0.5rem, 1vw, 0.9rem);
+  }
+  .rule {
+    border-top: 1px solid var(--hair);
+    padding-top: 1.1rem;
+  }
+  .rt {
+    font-size: var(--step-h3);
+    line-height: 1.08;
+    margin-bottom: 0.6rem;
+  }
+  .rb {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-size: var(--step-small);
+    line-height: 1.7;
+  }
+
+  .proof { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .proof-body { max-width: 66ch; }
+  .proof-body p {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.3rem;
+    line-height: 1.75;
+  }
+  .proof-body .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+  .proof-body p:last-child { margin-bottom: 0; }
+  .proof-body code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    color: var(--text);
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+    padding: 0.1em 0.35em;
+  }
+
+  .note {
+    margin-top: clamp(2.5rem, 7vh, 4rem);
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--hair-2);
+    background: color-mix(in srgb, var(--panel) 40%, transparent);
+  }
+  .note p {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .rules { grid-template-columns: 1fr; }
+  }
+</style>

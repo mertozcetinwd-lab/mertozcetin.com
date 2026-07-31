@@ -309,6 +309,19 @@ export const projects = [
     art: { src: '/img/work/slides.png', label: 'SLIDES · VISION LOOP', ratio: '5 / 4', focus: 'center' },
   },
   {
+    title: 'Resume Screener',
+    short: 'Resume Screener',
+    kind: 'Tool',
+    year: '2026',
+    role: 'Design + build',
+    tags: ['Python', 'pypdf', 'python-docx', 'Astro'],
+    summary:
+      'A local resume screening tool that treats the model as a witness, not a judge. Every verdict must cite verbatim evidence from the resume; fabricated quotes are discarded before they reach the report.',
+    outcome: 'Verdicts tied to source text, with “unclear” kept visually distinct from “not met.”',
+    status: 'building',
+    links: [{ label: 'Case study', href: '/work/resume-screener' }],
+  },
+  {
     title: 'mertozcetin.com',
     short: 'mertozcetin.com',
     kind: 'Site',
