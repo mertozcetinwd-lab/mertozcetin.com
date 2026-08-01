@@ -86,12 +86,19 @@ const run = {
             with an X. They do not look the same because they mean different things.
           </p>
           <p>
-            The witness layer is designed to catch a lying model: a fabricated “met”
-            verdict citing a line that does not appear in the resume would have its
-            evidence stripped and the claim downgraded to “unclear.” A genuine quote in
-            the same batch would pass through untouched. The current <code>judge.py</code>
-            module is a stub that returns canned verdicts for plumbing tests, so that
-            verification step will be exercised once the judgment logic is wired in.
+            The witness layer has since been exercised against a model doing exactly
+            what it is built to catch. Asked to assess one of the synthetic resumes, it
+            returned a confident “met” and cited a line about running Kubernetes clusters
+            at scale for six years. That sentence appears nowhere in the document.
+            <code>verify_evidence</code> did not find it, the quote was stripped, and the
+            verdict dropped to “unclear.” Genuine quotes in the same batch passed through
+            untouched.
+          </p>
+          <p>
+            One resume came back <Mark>0 of 8</Mark>. That was checked by hand and it was
+            right: the candidate is an IT technician and the requirements describe an
+            engineering role. A screener whose failure mode is a confident yes is worth
+            less than one willing to return nothing.
           </p>
         </div>
       </section>
