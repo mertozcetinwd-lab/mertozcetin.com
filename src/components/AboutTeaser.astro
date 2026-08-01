@@ -21,7 +21,10 @@ import { meta, stack } from '../data/site.js';
     <div class="right reveal">
       <dl class="facts">
         <div class="fact"><dt>Focus</dt><dd>{meta.role}</dd></div>
-        <div class="fact"><dt>Studio</dt><dd>{meta.brand}</dd></div>
+        {/* The studio was flat text for months. It is the one fact on this list
+            with somewhere to go, and a recruiter who wants to know whether "runs
+            a studio" means anything had no way to check. */}
+        <div class="fact"><dt>Studio</dt><dd><a class="out" href={meta.brandUrl}>{meta.brand} <span aria-hidden="true">↗</span></a></dd></div>
         <div class="fact"><dt>Status</dt><dd>{meta.status}</dd></div>
         <div class="fact"><dt>Based</dt><dd>{meta.location}</dd></div>
       </dl>
@@ -62,6 +65,18 @@ import { meta, stack } from '../data/site.js';
   }
   .fact dt { color: var(--muted); }
   .fact dd { color: var(--text); text-align: right; }
+  /* Underline drawn on hover, matching the site's link idiom. Kept at inherit
+     rather than an accent so the row still reads as a fact, not a call to action. */
+  .fact dd .out {
+    color: inherit;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1px;
+    transition: background-size var(--t-med) var(--ease);
+    padding-bottom: 2px;
+  }
+  .fact dd .out:hover, .fact dd .out:focus-visible { background-size: 100% 1px; }
 
   .stack .eyebrow { display: block; margin-bottom: 0.9rem; }
   .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
