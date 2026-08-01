@@ -28,6 +28,12 @@ const jobs = [
     clip: { x: 0, y: 0, width: 1280, height: 800 },   // 16:10 console — the flagship
   },
   {
+    name: 'lead-engine',
+    url: pathToFileURL(resolve(process.cwd(), 'scripts/artifact-lead-engine.html')).href,
+    viewport: { width: 1400, height: 900 },
+    clip: { x: 0, y: 0, width: 1400, height: 875 },   // 16:10 — run stdout + ranked output
+  },
+  {
     name: 'storm',
     url: fileUrl('reports/storm-agentic-workflows-2026-07-05.html'),
     viewport: { width: 1040, height: 900 },

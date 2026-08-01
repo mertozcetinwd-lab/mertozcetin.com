@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Nonprofit lead engine</title>
+<!--
+  Composed from the REAL output shape of institution-engine/, and from
+  automations/aydiner-demo/florida-nonprofits-11-ANON.csv:
+
+    name  revenue_band  donor_pain_score  contact_confidence  score
+
+  The funnel counts are the real ones from that run: 412 organisations read,
+  43 inside the size band, 11 with measurable distress, and 3 with a contact
+  name the engine would stand behind (high 2, low 1, none 8).
+
+  EVERY ORGANISATION IS SHOWN AS A LETTER, exactly as the anonymised CSV does.
+  These are real filers and this is a public page. No names, no cities, no EINs,
+  no exact revenue: a location plus an exact filing figure re-identifies a filer
+  in one search, which is why the source file is banded and this inherits that.
+
+  The terminal deliberately prints only COUNTS and TIERS, never a per-organisation
+  derived statistic. "-94% net assets over two years" against a banded revenue
+  would narrow the field to one filer even without a name.
+-->
+<style>
+  :root{
+    --bg:#0d0f13; --panel:#151821; --panel2:#111319; --line:#252a35;
+    --ink:#e9edf4; --dim:#98a1b2; --faint:#5e6675;
+    --green:#4ec98a; --amber:#e6b45a; --violet:#a99bff; --accent:#6ea8fe; --red:#e57b7b;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;-webkit-font-smoothing:antialiased}
+  .win{width:1400px;height:875px;display:flex;flex-direction:column;overflow:hidden}
+
+  .bar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  .tl{display:flex;gap:6px;margin-right:6px}
+  .tl i{width:10px;height:10px;border-radius:50%;display:block}
+  .tl i:nth-child(1){background:#ff5f57}.tl i:nth-child(2){background:#febc2e}.tl i:nth-child(3){background:#28c840}
+  .bar .t{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .bar .src{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--green);
+            border:1px solid var(--green);border-radius:4px;padding:2px 8px}
+
+  .body{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:0}
+  .col{overflow:hidden;display:flex;flex-direction:column}
+  .col.left{border-right:1px solid var(--line);background:var(--panel2)}
+  .h{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+     padding:16px 26px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+
+  /* terminal */
+  .term{padding:18px 26px;font-family:var(--mono);font-size:13px;line-height:2.42;overflow:hidden}
+  .term .p{color:var(--green)}
+  .term .m{color:var(--dim)}
+  .term .g{color:var(--green)}
+  .term .a{color:var(--amber)}
+  .term .v{color:var(--violet)}
+  .term .b{color:var(--accent)}
+  .term .r{color:var(--red)}
+  .term .dim{color:var(--faint)}
+  .cur{display:inline-block;width:7px;height:13px;background:var(--ink);vertical-align:-2px;margin-left:3px}
+
+  /* funnel */
+  .funnel{padding:22px 26px;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .fg .n{font-family:var(--mono);font-size:36px;line-height:1;color:var(--ink)}
+  .fg .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:7px;line-height:1.5}
+
+  /* table */
+  .tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:13px}
+  .tbl th{text-align:left;padding:14px 26px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+          color:var(--faint);border-bottom:1px solid var(--line);font-weight:400;white-space:nowrap}
+  .tbl td{padding:21px 26px;border-bottom:1px solid rgba(37,42,53,.6);color:var(--dim)}
+  .tbl td.org{color:var(--ink)}
+  .tbl td.num{color:var(--ink);text-align:right}
+  .tbl tr.top td{background:rgba(110,168,254,.05)}
+  .chip{font-size:9px;letter-spacing:.1em;text-transform:uppercase;border:1px solid;border-radius:3px;padding:2px 7px}
+  .chip.high{color:var(--green);border-color:rgba(78,201,138,.5)}
+  .chip.low{color:var(--amber);border-color:rgba(230,180,90,.5)}
+  .chip.none{color:var(--faint);border-color:rgba(94,102,117,.5)}
+
+  .foot{padding:18px 26px;border-top:1px solid var(--line);background:var(--panel2);
+        font-family:var(--mono);font-size:10px;color:var(--faint);line-height:1.7}
+  .foot b{color:var(--dim);font-weight:400}
+</style>
+</head>
+<body>
+<div class="win">
+  <div class="bar">
+    <div class="tl"><i></i><i></i><i></i></div>
+    <span class="t">institution-engine — scan</span>
+    <span class="src">IPEDS + FORM 990 · NO PAID DATA</span>
+  </div>
+
+  <div class="body">
+    <div class="col left">
+      <div class="h"><span>Run</span><span>stdout</span></div>
+      <div class="term">
+        <div><span class="p">$</span> python institution-engine/main.py <span class="b">--nonprofits</span> <span class="b">--min-pain 10</span></div>
+        <div class="m">&nbsp;</div>
+        <div class="m">reading ProPublica Form 990 index ....... <span class="g">412 orgs</span></div>
+        <div class="m">size band filter ........................ <span class="g">43 kept</span> <span class="dim">369 dropped</span></div>
+        <div class="m">deriving donor signals from filed years</div>
+        <div class="dim">&nbsp;&nbsp;days of cover, deficit run, payroll trend</div>
+        <div class="m">&nbsp;</div>
+        <div class="m"><span class="a">gate</span> min-pain 10 .................... <span class="a">32 skipped</span></div>
+        <div class="dim">&nbsp;&nbsp;skipped before website discovery,</div>
+        <div class="dim">&nbsp;&nbsp;which is ~30 requests per org</div>
+        <div class="m">&nbsp;</div>
+        <div class="m">website discovery ....................... <span class="g">11 orgs</span></div>
+        <div class="m">contact extraction + grading</div>
+        <div class="dim">&nbsp;&nbsp;high <span class="g">2</span> &nbsp;low <span class="a">1</span> &nbsp;none <span class="r">8</span></div>
+        <div class="m">&nbsp;</div>
+        <div class="m">8 names could not be grounded</div>
+        <div class="dim">&nbsp;&nbsp;returned "none", not guessed</div>
+        <div class="m">&nbsp;</div>
+        <div class="m">wrote <span class="v">florida-nonprofits-11.csv</span><span class="cur"></span></div>
+      </div>
+
+      <div class="funnel" style="margin-top:auto">
+        <div class="fg"><div class="n">412</div><div class="l">read</div></div>
+        <div class="fg"><div class="n">43</div><div class="l">in band</div></div>
+        <div class="fg"><div class="n">11</div><div class="l">with distress</div></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="h"><span>Output</span><span>ranked · anonymised</span></div>
+      <table class="tbl">
+        <thead>
+          <tr><th>Organisation</th><th>Revenue</th><th>Distress</th><th>Contact</th><th style="text-align:right">Score</th></tr>
+        </thead>
+        <tbody>
+          <tr class="top"><td class="org">Organisation A</td><td>$4.7M</td><td class="num">50</td><td><span class="chip high">high</span></td><td class="num">58</td></tr>
+          <tr class="top"><td class="org">Organisation B</td><td>$2.9M</td><td class="num">50</td><td><span class="chip none">none</span></td><td class="num">56</td></tr>
+          <tr><td class="org">Organisation C</td><td>$4.2M</td><td class="num">35</td><td><span class="chip low">low</span></td><td class="num">42</td></tr>
+          <tr><td class="org">Organisation D</td><td>$3.9M</td><td class="num">35</td><td><span class="chip none">none</span></td><td class="num">38</td></tr>
+          <tr><td class="org">Organisation E</td><td>$3.6M</td><td class="num">25</td><td><span class="chip none">none</span></td><td class="num">28</td></tr>
+          <tr><td class="org">Organisation F</td><td>$2.2M</td><td class="num">22</td><td><span class="chip high">high</span></td><td class="num">25</td></tr>
+          <tr><td class="org">Organisation G</td><td>$3.4M</td><td class="num">20</td><td><span class="chip none">none</span></td><td class="num">23</td></tr>
+          <tr><td class="org">Organisation H</td><td>$4.1M</td><td class="num">12</td><td><span class="chip none">none</span></td><td class="num">22</td></tr>
+          <tr><td class="org">Organisation I</td><td>$3.9M</td><td class="num">12</td><td><span class="chip none">none</span></td><td class="num">18</td></tr>
+          <tr><td class="org">Organisation J</td><td>$3.7M</td><td class="num">10</td><td><span class="chip none">none</span></td><td class="num">16</td></tr>
+          <tr><td class="org">Organisation K</td><td>$2.7M</td><td class="num">10</td><td><span class="chip none">none</span></td><td class="num">16</td></tr>
+        </tbody>
+      </table>
+
+      <div class="foot" style="margin-top:auto">
+        <b>3 of 11</b> had a contact name the engine would stand behind. The other
+        eight are returned as <b>none</b> rather than guessed from a staff page.<br>
+        Names, cities, EINs and exact revenue figures are withheld: these are real filers.
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

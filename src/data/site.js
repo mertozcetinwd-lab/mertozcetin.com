@@ -10,6 +10,10 @@ export const meta = {
   last: 'Ozcetin',
   role: 'AI Automation & Agentic Systems',
   brand: 'Client Optimal',
+  // The studio's own site. This site stays about Mert, so the link sits in the
+  // profile facts on the homepage and nowhere louder — it is corroboration that
+  // "runs a studio" is a real thing, not a pitch for the studio.
+  brandUrl: 'https://clientoptimal.com',
   // Remote is a hard constraint, not a preference — it belongs wherever the
   // location is stated rather than buried in one line on /about.
   location: 'Remote · USA',
@@ -152,6 +156,33 @@ export const projects = [
     status: 'live',
     art: { src: '/img/work/aisos.png', label: 'AIS-OS CONSOLE', ratio: '16 / 10', focus: 'center top' },
     // private — no public link
+  },
+  {
+    // Source: institution-engine/ in the AIS-OS repo. Placed second, directly under
+    // the featured system, because it is the deepest build on this page and the one
+    // whose design decisions are worth an interview question.
+    //
+    // ANONYMISATION IS NOT OPTIONAL. Every figure below comes from
+    // automations/aydiner-demo/florida-nonprofits-11-ANON.csv. No organisation
+    // names, no cities, no EINs, no exact revenue figures, ever — city plus an
+    // exact revenue is a fingerprint that re-identifies a filer in one search.
+    //
+    // Framed for an employer, not a buyer. clientoptimal.com/work/lead-engine tells
+    // the same story as "here is a prospect list you can act on"; this one is about
+    // how the thing was built to refuse.
+    highlight: true,
+    title: 'Nonprofit lead engine',
+    short: 'Lead Engine',
+    kind: 'System',
+    year: '2026',
+    role: 'Design + build',
+    tags: ['Python', 'IPEDS', 'ProPublica Form 990', 'Scoring', 'Evidence grading'],
+    summary:
+      'Ranks organisations by financial distress read straight off their public tax filings, on two free government datasets and no paid data vendor. Days of operating cover, multi-year deficits and payroll collapse are derived from the raw 990 fields, then every contact name it finds is confidence-graded against its source.',
+    outcome: 'It grades what it cannot evidence and returns “unclear” instead of inventing a lead.',
+    status: 'live',
+    art: { src: '/img/work/lead-engine.png', label: 'LEAD ENGINE · RANKED OUTPUT', ratio: '16 / 10', focus: 'center top' },
+    links: [{ label: 'Case study', href: '/work/lead-engine' }],
   },
   {
     // Source: Desktop/AI Stuff/Clay LeadGen/hvac_home_service_leads_50.csv —

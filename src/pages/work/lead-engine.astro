@@ -1,0 +1,259 @@
+---
+// /work/lead-engine — the engineering half of the story.
+//
+// clientoptimal.com/work/lead-engine tells the buyer's version: here is a ranked
+// prospect list and here is what it cost to produce. This one is for someone
+// deciding whether to hire the person who built it, so it leads with the design
+// decisions instead: what is derived rather than reported, where the expensive
+// work is gated, and why the output is allowed to say nothing.
+//
+// EVERY FIGURE COMES FROM automations/aydiner-demo/florida-nonprofits-11-ANON.csv
+// in the AIS-OS repo. No organisation names, no cities, no EINs, no exact revenue.
+// City plus an exact revenue figure re-identifies a filer in one search, which is
+// why the source file is banded and this page inherits that.
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Footer from '../../components/Footer.astro';
+import Mark from '../../components/Mark.astro';
+import { meta } from '../../data/site.js';
+
+const funnel = [
+  { num: '412', label: 'organisations read from public filings' },
+  { num: '43', label: 'inside the target size band' },
+  { num: '11', label: 'with measurable financial distress' },
+];
+
+const decisions = [
+  {
+    title: 'Derived, not reported',
+    body: 'Nothing useful is a field on a Form 990. Days of operating cover is net assets over functional expenses, annualised. Deficit is revenue minus expenses, carried across every filed year. Capacity is the non-officer payroll line read as a trend. The engine computes what matters from what is published.',
+  },
+  {
+    title: 'Gate before you spend',
+    body: 'Distress is arithmetic on filings already in hand and costs nothing. Finding a website, crawling it and extracting a contact is roughly thirty requests per organisation. So the distress test runs first and everything below it is skipped. Ordering those two steps correctly is the difference between a scan that finishes and one that does not.',
+  },
+  {
+    title: 'Grade the claim, not just the answer',
+    body: 'Every contact name carries a confidence tier and the URL it came from, and the tier feeds back into the score: a low-confidence name is a lead to verify, not a lead. Names that cannot be grounded are returned as “none” rather than guessed from a staff page.',
+  },
+];
+---
+
+<Base
+  title={`Nonprofit lead engine — Work — ${meta.name}`}
+  description="A prospecting engine on two free public datasets that ranks organisations by financial distress derived from their tax filings, and grades every claim it cannot evidence."
+>
+  <PageHead
+    eyebrow="Case study"
+    title="Nonprofit lead engine"
+    lead="Two free government datasets in, a ranked and evidence-graded shortlist out."
+  />
+
+  <article class="case">
+    <div class="wrap">
+      <section class="prose reveal">
+        <p class="big">
+          Every organisation in this sector files a public tax return, and almost
+          nobody reads them. The interesting things are <Mark>not fields on the form</Mark>.
+          They have to be computed from it.
+        </p>
+        <p>
+          The engine runs on the US Department of Education's IPEDS and ProPublica's
+          Form 990 API. No paid data vendor, no scraping, no account needed for either.
+          It reads the filed years for an organisation, derives how close to the edge
+          it is running, and ranks what is left.
+        </p>
+      </section>
+
+      <section class="funnel-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> One run</span>
+          <span>The funnel</span>
+        </div>
+        <ul class="funnel">
+          {funnel.map((f) => (
+            <li class="fig reveal">
+              <span class="num">{f.num}</span>
+              <span class="lab">{f.label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="rules-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> Design decisions</span>
+          <span>Three that mattered</span>
+        </div>
+        <ul class="rules">
+          {decisions.map((d, i) => (
+            <li class="rule reveal" style={`--i:${i % 2}`}>
+              <h2 class="display rt">{d.title}</h2>
+              <p class="rb">{d.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="proof reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> The output</span>
+          <span>What it admits</span>
+        </div>
+        <div class="proof-body">
+          <p class="big">
+            {/* The space before <Mark> is explicit. A newline there is trimmed at
+                compile time and the words run together: "onlythree". */}
+            Of the eleven organisations that survived the funnel, only{' '}<Mark>three</Mark>{' '}
+            had a contact name the engine was willing to stand behind.
+          </p>
+          <p>
+            That number is unflattering and it ships anyway. Guessing
+            <code>firstname.lastname</code> from a staff page would have returned eleven,
+            and eight of them would have been wrong in a way nobody could see until an
+            email bounced. The engine returns “none” instead, and the row stays in the
+            list marked as needing a human.
+          </p>
+          <p>
+            The same rule governs everything else it reports. A verdict it cannot ground
+            in a fetched page is returned as “unclear,” never as a negative, because a
+            silent website is not evidence of anything. A tool that never says “unclear”
+            has stopped checking.
+          </p>
+        </div>
+      </section>
+
+      <section class="note reveal">
+        <p>
+          Figures on this page are from a real run and are deliberately anonymised: no
+          organisation names, locations, EINs or exact revenue figures appear here, because
+          a location and an exact filing figure together identify a filer.
+        </p>
+      </section>
+    </div>
+  </article>
+
+  <Footer />
+</Base>
+
+<style>
+  .case { padding-block: clamp(2rem, 6vh, 4rem) clamp(2.5rem, 7vh, 5rem); }
+
+  .prose { max-width: 66ch; }
+  .prose p {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.3rem;
+    line-height: 1.75;
+  }
+  .prose .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+  .prose p:last-child { margin-bottom: 0; }
+
+  .funnel-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.4rem, 3vw, 2.6rem);
+    padding-top: clamp(0.5rem, 1vw, 0.9rem);
+  }
+  .fig {
+    border-top: 1px solid var(--hair);
+    padding-top: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .num {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: clamp(2.6rem, 2rem + 2.6vw, 4.4rem);
+    line-height: 1;
+    letter-spacing: var(--ls-display);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .lab {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  .rules-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.4rem, 3vw, 2.6rem);
+    padding-top: clamp(0.5rem, 1vw, 0.9rem);
+  }
+  .rule {
+    border-top: 1px solid var(--hair);
+    padding-top: 1.1rem;
+  }
+  .rt {
+    font-size: var(--step-h3);
+    line-height: 1.08;
+    margin-bottom: 0.6rem;
+  }
+  .rb {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-size: var(--step-small);
+    line-height: 1.7;
+  }
+
+  .proof { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .proof-body { max-width: 66ch; }
+  .proof-body p {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.3rem;
+    line-height: 1.75;
+  }
+  .proof-body .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+  .proof-body p:last-child { margin-bottom: 0; }
+  .proof-body code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    color: var(--text);
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+    padding: 0.1em 0.35em;
+  }
+
+  .note {
+    margin-top: clamp(2.5rem, 7vh, 4rem);
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--hair-2);
+    background: color-mix(in srgb, var(--panel) 40%, transparent);
+  }
+  .note p {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .rules, .funnel { grid-template-columns: 1fr; }
+  }
+</style>
