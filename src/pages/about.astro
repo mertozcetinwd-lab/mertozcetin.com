@@ -138,6 +138,17 @@ const principles = [
       </div>
 
       <aside class="facts reveal" aria-label="Profile">
+        <div class="portrait">
+          <img
+            src="/img/mert/mert-ozcetin-400.jpg"
+            srcset="/img/mert/mert-ozcetin-400.webp 1x, /img/mert/mert-ozcetin-800.webp 2x"
+            width="400"
+            height="400"
+            alt="Mert Ozcetin"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
         <dl>
           <div class="fact"><dt>Focus</dt><dd>{meta.role}</dd></div>
           <div class="fact"><dt>Studio</dt><dd>{meta.brand}</dd></div>
@@ -251,6 +262,8 @@ const principles = [
   .prose p:last-child { margin-bottom: 0; }
 
   .facts { align-self: start; }
+  .portrait { margin-bottom: 2rem; }
+  .portrait img { display: block; width: 100%; max-width: 260px; height: auto; aspect-ratio: 1 / 1; }
   .facts dl { border-top: 1px solid var(--hair-2); }
   .fact {
     display: flex; justify-content: space-between; gap: 1rem;
