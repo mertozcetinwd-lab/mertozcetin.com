@@ -11,22 +11,12 @@ import { meta, primaryContact } from '../data/site.js';
 import Decode from './Decode.astro';
 
 // One ordered sequence, declared here rather than scattered through the CSS.
-const T = { portrait: 0, eyebrow: 160, l1: 280, l2: 420, tag: 860, cta: 1020, status: 1140 };
+const T = { eyebrow: 0, l1: 120, l2: 260, tag: 700, cta: 860, status: 980, portrait: 520 };
 ---
 
 <section class="hero" id="top">
   <div class="wrap grid">
     <div class="lede">
-      <div class="portrait" data-boot style={`--d:${T.portrait}ms`}>
-        <img
-          src="/img/mert/mert-ozcetin-400.jpg"
-          srcset="/img/mert/mert-ozcetin-400.webp 1x, /img/mert/mert-ozcetin-800.webp 2x"
-          width="400"
-          height="400"
-          alt="Mert Ozcetin"
-          decoding="async"
-        />
-      </div>
       <p class="eyebrow" data-boot style={`--d:${T.eyebrow}ms`}>{meta.role}</p>
 
       <h1 class="display name">
@@ -55,12 +45,18 @@ const T = { portrait: 0, eyebrow: 160, l1: 280, l2: 420, tag: 860, cta: 1020, st
       </p>
     </div>
 
-    {/* The one animated plate on the site: a live agent graph. It's the only
-        permanently-moving thing, it's drawn in code (nothing rented), and it
-        fills the dead right column the hero has had since the manifest left. */}
-    <div class="art" data-boot style="--d:520ms">
-      <canvas data-plate data-seed="20260716" data-nodes="full" aria-hidden="true"></canvas>
-      <span class="cap">Fig. — agent graph · drawn in code</span>
+    <div class="photo" data-boot style={`--d:${T.portrait}ms`}>
+      <div class="frame">
+        <img
+          src="/img/mert/mert-ozcetin-400.jpg"
+          srcset="/img/mert/mert-ozcetin-400.webp 1x, /img/mert/mert-ozcetin-800.webp 2x"
+          width="400"
+          height="400"
+          alt="Mert Ozcetin"
+          decoding="async"
+        />
+      </div>
+      <span class="cap">Mert Ozcetin</span>
     </div>
   </div>
 </section>
@@ -77,19 +73,21 @@ const T = { portrait: 0, eyebrow: 160, l1: 280, l2: 420, tag: 860, cta: 1020, st
     align-items: center; width: 100%;
   }
 
-  .art { position: relative; }
-  .art canvas {
-    display: block; width: 100%; aspect-ratio: 4 / 3;
+  .photo { position: relative; max-width: 420px; justify-self: end; }
+  .frame {
+    padding: 0.55rem;
+    border: 1px solid var(--hair-2);
+    background: color-mix(in srgb, var(--panel) 55%, transparent);
+  }
+  .frame img {
+    display: block; width: 100%; height: auto; aspect-ratio: 1 / 1;
   }
   .cap {
-    display: block; margin-top: 0.6rem;
+    display: block; margin-top: 0.7rem;
     font-family: var(--font-mono);
     font-size: 0.58rem; font-weight: 500;
     letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
   }
-
-  .portrait { width: 88px; margin-bottom: 1.4rem; }
-  .portrait img { display: block; width: 100%; height: auto; aspect-ratio: 1 / 1; }
 
   .eyebrow { margin-bottom: 1.6rem; }
 
@@ -123,6 +121,6 @@ const T = { portrait: 0, eyebrow: 160, l1: 280, l2: 420, tag: 860, cta: 1020, st
   @media (max-width: 900px) {
     .hero { min-height: 0; padding-block: clamp(3rem, 12vh, 5rem) clamp(2.5rem, 8vh, 4rem); }
     .grid { grid-template-columns: 1fr; gap: 2.5rem; }
-    .art { max-width: 420px; }
+    .photo { max-width: 320px; justify-self: start; }
   }
 </style>
