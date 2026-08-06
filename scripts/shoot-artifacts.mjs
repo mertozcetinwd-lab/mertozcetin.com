@@ -28,6 +28,12 @@ const jobs = [
     clip: { x: 0, y: 0, width: 1280, height: 800 },   // 16:10 console — the flagship
   },
   {
+    name: 'outreach-engine',
+    url: pathToFileURL(resolve(process.cwd(), 'scripts/artifact-outreach-engine.html')).href,
+    viewport: { width: 1400, height: 900 },
+    clip: { x: 0, y: 0, width: 1400, height: 875 },   // 16:10 — sweep stdout + gate verdicts
+  },
+  {
     name: 'lead-engine',
     url: pathToFileURL(resolve(process.cwd(), 'scripts/artifact-lead-engine.html')).href,
     viewport: { width: 1400, height: 900 },

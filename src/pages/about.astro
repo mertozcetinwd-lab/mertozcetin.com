@@ -262,8 +262,38 @@ const principles = [
   .prose p:last-child { margin-bottom: 0; }
 
   .facts { align-self: start; }
-  .portrait { margin-bottom: 2rem; }
-  .portrait img { display: block; width: 100%; max-width: 260px; height: auto; aspect-ratio: 1 / 1; }
+  /* Offset corner brackets, not a box. The site has no border-radius anywhere and
+     builds everything from hairlines, so a full frame would read as a stock photo
+     card; two opposing L-marks read as a plate mark and stay in the same language
+     as the section rules. Deliberately NOT the accent — ember is the site's
+     "look here" signal and a portrait is not that moment. */
+  .portrait {
+    margin-bottom: 2rem;
+    position: relative;
+    width: fit-content;
+  }
+  .portrait::before,
+  .portrait::after {
+    content: '';
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    pointer-events: none;
+  }
+  .portrait::before {
+    top: -11px; left: -11px;
+    border-top: 1px solid var(--hair-2);
+    border-left: 1px solid var(--hair-2);
+  }
+  .portrait::after {
+    bottom: -11px; right: -11px;
+    border-bottom: 1px solid var(--hair-2);
+    border-right: 1px solid var(--hair-2);
+  }
+  .portrait img {
+    display: block; width: 100%; max-width: 260px; height: auto; aspect-ratio: 1 / 1;
+    border: 1px solid var(--hair);
+  }
   .facts dl { border-top: 1px solid var(--hair-2); }
   .fact {
     display: flex; justify-content: space-between; gap: 1rem;

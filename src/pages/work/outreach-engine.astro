@@ -1,0 +1,526 @@
+---
+// /work/outreach-engine — the flagship build, and the longest page on the site.
+//
+// DISTINCT FROM /work/lead-engine. That one reads public tax filings and ranks
+// nonprofits by financial distress. This one is a multi-source outbound engine:
+// it finds owners, proves each one is approachable and still trading, and
+// remembers who was worked. Two systems, one discipline — both gate the
+// expensive step behind a cheap one, and both refuse to answer when they can't
+// evidence the answer.
+//
+// VOICE CONSTRAINT, and it is a hard one. The engine enforces a constraint set
+// that is personal to Mert. This page is read by recruiters, and his standing
+// instruction is that external material stays neutral while the principle is
+// still fully applied. So it is described here as a POLICY GATE with a
+// three-valued verdict and a human-decision tier. Every word on this page is
+// true; the constraint's origin is simply not the subject. Do not "clarify" it.
+//
+// EVERY FIGURE IS FROM THE REAL RUN ON 2026-08-06:
+//   72 owners / $0.126 / 6 searches   -> exa.py --owners across 2 niches x 3 states
+//   2 blocked                          -> the name rules, after the bug below was fixed
+//   4-7% LinkedIn hit rate on Maps     -> measured over prior Places runs
+//   $0.02 per search, 8-15 owners      -> measured, not the vendor's number
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import Footer from '../../components/Footer.astro';
+import Mark from '../../components/Mark.astro';
+import { meta } from '../../data/site.js';
+
+const funnel = [
+  { num: '72', label: 'business owners found, each with a verified profile' },
+  { num: '$0.13', label: 'total spend for that run, across six searches' },
+  { num: '2', label: 'blocked by the policy gate before a human saw them' },
+];
+
+// Serpentine: row A left-to-right, drop at the right, row B right-to-left, then
+// a dashed feedback line back into intake. Eight stages is the whole engine.
+const rowA = [
+  { x: 30, t: 'SOURCES', s: 'Exa · Places · Overture' },
+  { x: 254, t: 'INTAKE', s: 'validate · dedupe' },
+  { x: 478, t: 'NAME RULES', s: 'every lead, first' },
+  { x: 702, t: 'POLICY GATE', s: 'reads their own pages', accent: true },
+];
+const rowB = [
+  { x: 702, t: 'VERIFY', s: 'trading? role current?' },
+  { x: 478, t: 'BOARD', s: 'one card per lead' },
+  { x: 254, t: 'DRAFT', s: 'dossier · Loom · InMail', human: true },
+  { x: 30, t: 'SYNC BACK', s: 'who was already worked' },
+];
+
+const decisions = [
+  {
+    title: 'The quota was the product decision',
+    body: 'The old people-search returned a hard 100 results a month, so an API quota — not the market, not the offer — decided how many businesses could be approached. Swapping it for a semantic search index that returns 8 to 15 owners per query at about two cents moved the ceiling to something real: how many owners of that kind actually exist. A limit you can feel in the product is a design problem, not a billing one.',
+  },
+  {
+    title: 'Gate before you spend',
+    body: 'Checks are ordered by what they cost. Reading a business name is free, so the rules that can reject a lead outright run first. Fetching and reading a company’s catalogue pages is several requests, so it runs last and only on what survived. Getting those two in the wrong order is the difference between a sweep that finishes and one that does not.',
+  },
+  {
+    title: 'Three verdicts, not two',
+    body: 'The policy gate returns clean, blocked, or needs-review. The third one is the point. A binary check forces a guess on every ambiguous case, and the ambiguous cases are exactly the ones a person should decide. So the middle is surfaced with the reason attached and a human rules on it. The engine is never the one that decides a close call.',
+  },
+  {
+    title: 'A failed fetch is not a pass',
+    body: 'If the site is dead, blocked, or renders only in JavaScript, the verdict is needs-review — never clean. Recording an unread page as clean is absence of evidence read as evidence of absence, and it is the most expensive bug this class of tool can have, because it looks exactly like success.',
+  },
+  {
+    title: 'Close the loop or learn nothing',
+    body: 'The board is the record of what happened to each lead, and for a long time nothing read it back. So the pipeline had no memory: run it next month and the same businesses resurface with no sign anyone had already been contacted. The sync is read-only and one-directional by design — stage changes are a human judgement, and the engine’s job is only to remember them.',
+  },
+];
+
+const stages = [
+  { n: '01', t: 'Choose the niche', d: 'One registry holds 17 niches across 50 states: which categories to search, which job titles count, and which policy gate that niche needs. Adding a niche is one entry, not a code change.' },
+  { n: '02', t: 'Find the owners', d: 'A semantic search index returns public professional profiles for a plain-English query. Each result carries the person, their title, their company, their city and their following, so one call produces qualified leads rather than names to chase.' },
+  { n: '03', t: 'Take them in', d: 'Both the automatic source and a hand-typed one write the same file, so everything downstream is source-agnostic. Malformed rows are rejected by spreadsheet line number. Anyone already worked is suppressed.' },
+  { n: '04', t: 'Apply the name rules', d: 'The cheapest check runs on every single lead before anything is fetched.' },
+  { n: '05', t: 'Run the policy gate', d: 'For niches that need it, read the company’s own product and catalogue pages and decide from what they actually sell, not from how they are categorised.' },
+  { n: '06', t: 'Prove they are trading', d: 'DNS records, mail servers, a live read of the site, and the business’s public map status. A company that still runs email is almost certainly still operating.' },
+  { n: '07', t: 'Prove the person is still there', d: 'The profile URL is checked for a real 404 rather than a refusal, and the person’s current roles are checked against the company we think they run.' },
+  { n: '08', t: 'Rank and explain', d: 'Every lead is scored and every score prints its reasons. Suppression counts print even at zero, because a silent filter is indistinguishable from a broken one.' },
+  { n: '09', t: 'Draft', d: 'From the fetched site: a research dossier, a short first-touch message, and a longer one sized to the platform it is going to. Nothing invented, everything traceable to a page that was actually read.' },
+  { n: '10', t: 'Remember', d: 'The board is read back into the repo so next month’s run cannot resurface someone already contacted.' },
+];
+
+const services = [
+  { s: 'Semantic search index', a: 'Who owns a business like this?', q: '~$0.02 per search' },
+  { s: 'Google Places', a: 'Is it trading? How big? What time zone?', q: '1,000 / month' },
+  { s: 'Overture Maps', a: 'Free, uncapped place data', q: 'no key, no cap' },
+  { s: 'Page reader', a: 'What does this company actually sell?', q: '1,000 / month' },
+  { s: 'Person data API', a: 'Does this owner still hold the role?', q: '100 / month' },
+  { s: 'Two email finders', a: 'A work address, stacked and verified', q: '125 / month' },
+  { s: 'Claude', a: 'Writes the dossier and the outreach', q: 'per draft' },
+  { s: 'ClickUp', a: 'The board, and the system of record', q: 'uncapped' },
+];
+---
+
+<Base
+  title={`Outreach engine — Work — ${meta.name}`}
+  description="A multi-source prospecting engine that finds business owners, proves each one is approachable and still trading, and remembers who was already contacted. Ten services, seventeen niches, fifty states."
+>
+  <PageHead
+    eyebrow="Case study"
+    title="Outreach engine"
+    lead="Finding businesses is easy. Finding ones you are allowed to approach, and can prove are still there, is the actual work."
+  />
+
+  <article class="case">
+    <div class="wrap">
+      <section class="prose reveal">
+        <p class="big">
+          Any tool can return a thousand companies. The hard part is that most of
+          them are <Mark>wrong</Mark> in ways a list cannot show you.
+        </p>
+        <p>
+          Some are out of policy and nothing on their listing says so. Some closed
+          eighteen months ago. Some are run by a person who left. A list that hands
+          you all thousand has moved the work rather than done it, and every bad
+          lead in it costs a real message to a real person.
+        </p>
+        <p>
+          This engine is built around that. Ten services, seventeen niches, fifty
+          states, and a pipeline whose whole design is refusing to put a lead in
+          front of a human until it has earned the place. It sources, checks,
+          ranks, drafts, and remembers. It never sends anything.
+        </p>
+      </section>
+
+      <section class="funnel-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> One run</span>
+          <span>Measured, not estimated</span>
+        </div>
+        <ul class="funnel">
+          {funnel.map((f) => (
+            <li class="fig reveal">
+              <span class="num">{f.num}</span>
+              <span class="lab">{f.label}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="diagram-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> The shape of it</span>
+          <span>Eight stages, one loop</span>
+        </div>
+        <div class="diagram">
+          <svg viewBox="0 0 932 290" role="img" aria-label="Eight-stage pipeline: sources, intake, name rules, policy gate, verify, board, draft, and a sync that feeds back into intake.">
+            <defs>
+              <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+              </marker>
+            </defs>
+
+            {rowA.map((b) => (
+              <g>
+                <rect x={b.x} y="50" width="200" height="64" rx="2"
+                      class={b.accent ? 'bx bx-accent' : 'bx'} />
+                <text x={b.x + 100} y="78" class="bt">{b.t}</text>
+                <text x={b.x + 100} y="96" class="bs">{b.s}</text>
+              </g>
+            ))}
+            {[0, 1, 2].map((i) => (
+              <line x1={rowA[i].x + 204} y1="82" x2={rowA[i + 1].x - 6} y2="82"
+                    class="arw" marker-end="url(#ah)" />
+            ))}
+
+            <line x1="802" y1="118" x2="802" y2="192" class="arw" marker-end="url(#ah)" />
+
+            {rowB.map((b) => (
+              <g>
+                <rect x={b.x} y="196" width="200" height="64" rx="2"
+                      class={b.human ? 'bx bx-human' : 'bx'} />
+                <text x={b.x + 100} y="224" class="bt">{b.t}</text>
+                <text x={b.x + 100} y="242" class="bs">{b.s}</text>
+              </g>
+            ))}
+            {[0, 1, 2].map((i) => (
+              <line x1={rowB[i].x - 6} y1="228" x2={rowB[i + 1].x + 204} y2="228"
+                    class="arw" marker-end="url(#ah)" />
+            ))}
+
+            <path d="M 24 228 L 12 228 L 12 82 L 248 82" class="arw arw-dash"
+                  marker-end="url(#ah)" fill="none" />
+            {/* Sits in the clear band between the two rows. At x=20,y=150 it landed
+                ON the dashed return line and read as "ver twice". */}
+            <text x="30" y="160" class="bs bs-left">never contacted twice</text>
+          </svg>
+        </div>
+        <p class="cap">
+          The dashed line is the part that took longest to get right. Without it the
+          engine produces leads and learns nothing.
+        </p>
+      </section>
+
+      <section class="rules-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> Design decisions</span>
+          <span>Five that mattered</span>
+        </div>
+        <ul class="rules">
+          {decisions.map((d, i) => (
+            <li class="rule reveal" style={`--i:${i % 2}`}>
+              <h2 class="display rt">{d.title}</h2>
+              <p class="rb">{d.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="stages-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> End to end</span>
+          <span>What a full run does</span>
+        </div>
+        <ol class="stages">
+          {stages.map((s) => (
+            <li class="stage reveal">
+              <span class="sn">{s.n}</span>
+              <div class="sbody">
+                <h3 class="st">{s.t}</h3>
+                <p class="sd">{s.d}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section class="svc-section reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> What it runs on</span>
+          <span>Ten services, no vendor lock</span>
+        </div>
+        <div class="svc-scroll">
+          <table class="svc">
+            <thead>
+              <tr><th>Service</th><th>What it answers</th><th>Budget</th></tr>
+            </thead>
+            <tbody>
+              {services.map((s) => (
+                <tr><td>{s.s}</td><td>{s.a}</td><td class="qn">{s.q}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="cap">
+          Every one is wired as a direct API — a key and a small script, not a
+          plugin. It loads no tool schemas into context, it can be budget-guarded
+          per service, and each integration leaves a written reference behind. The
+          engine uses no plugin servers at all, and that is a decision rather than
+          an omission.
+        </p>
+      </section>
+
+      <section class="proof reveal">
+        <div class="section-tag">
+          <span><span class="idx">◍</span> The output</span>
+          <span>What it refuses</span>
+        </div>
+        <div class="proof-body">
+          <p class="big">
+            The list of things this engine will not do is longer than the list of
+            things it will, and that is deliberate.
+          </p>
+          <p>
+            It will not invent a company name. If a profile does not clearly state
+            one, the field is left blank and the lead is rejected on the way in
+            rather than mailed to somebody. It will not treat a page it could not
+            read as a page that was fine. It will not rule on a close call — those
+            come back marked, with the reason, for a person to settle.
+          </p>
+          <p>
+            It will not claim someone has left a company on weak evidence, because
+            the platform returns the same refusal code for a deleted profile and
+            for a request it simply did not like. And it will not send anything.
+            No automated messages, no dialler, no posting. Every path ends at a
+            file or a card that a human opens first.
+          </p>
+        </div>
+      </section>
+
+      <section class="note reveal">
+        <p>
+          One bug from this build is worth stating plainly. The name rules
+          originally ran inside the website check, which needs a domain — and
+          leads from the new source arrive without one. So the cheapest and most
+          important check in the pipeline was silently skipped for an entire
+          source, and two out-of-policy brands reached the output marked clean.
+          It was caught by reading the results of a real run rather than by a
+          test. The rules now run first, on every lead, before anything else.
+        </p>
+      </section>
+    </div>
+  </article>
+
+  <Footer />
+</Base>
+
+<style>
+  .case { padding-block: clamp(2rem, 6vh, 4rem) clamp(2.5rem, 7vh, 5rem); }
+
+  .prose { max-width: 66ch; }
+  .prose p {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.3rem;
+    line-height: 1.75;
+  }
+  .prose .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+  .prose p:last-child { margin-bottom: 0; }
+
+  .funnel-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.4rem, 3vw, 2.6rem);
+    padding-top: clamp(0.5rem, 1vw, 0.9rem);
+  }
+  .fig {
+    border-top: 1px solid var(--hair);
+    padding-top: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .num {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: clamp(2.6rem, 2rem + 2.6vw, 4.4rem);
+    line-height: 1;
+    letter-spacing: var(--ls-display);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .lab {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+
+  /* The diagram is build-time SVG and inherits the theme through currentColor
+     and the token variables, so light and dark are one drawing, not two. */
+  .diagram-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .diagram {
+    margin-top: clamp(0.8rem, 2vw, 1.3rem);
+    overflow-x: auto;
+    border: 1px solid var(--hair);
+    background: color-mix(in srgb, var(--panel) 40%, transparent);
+    padding: clamp(0.8rem, 2vw, 1.4rem);
+  }
+  .diagram svg { display: block; width: 100%; min-width: 620px; height: auto; color: var(--text-dim); }
+  .diagram .bx { fill: none; stroke: var(--hair-2); stroke-width: 1; }
+  .diagram .bx-accent { stroke: var(--accent); stroke-width: 1.5; }
+  .diagram .bx-human { stroke: var(--hair-2); stroke-dasharray: 4 3; }
+  .diagram .bt {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    fill: var(--text);
+    text-anchor: middle;
+  }
+  .diagram .bs {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    fill: var(--text-dim);
+    text-anchor: middle;
+  }
+  .diagram .bs-left { text-anchor: start; }
+  .diagram .arw { stroke: currentColor; stroke-width: 1; fill: none; }
+  .diagram .arw-dash { stroke-dasharray: 5 4; }
+
+  .cap {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.7;
+    color: var(--text-dim);
+    max-width: 62ch;
+    margin-top: 0.9rem;
+  }
+
+  .rules-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .rules {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.4rem, 3vw, 2.6rem);
+    padding-top: clamp(0.5rem, 1vw, 0.9rem);
+  }
+  .rule {
+    border-top: 1px solid var(--hair);
+    padding-top: 1.1rem;
+  }
+  .rt {
+    font-size: var(--step-h3);
+    line-height: 1.08;
+    margin-bottom: 0.6rem;
+  }
+  .rb {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-size: var(--step-small);
+    line-height: 1.7;
+  }
+
+  .stages-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .stages {
+    list-style: none;
+    padding: clamp(0.5rem, 1vw, 0.9rem) 0 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.2rem, 2.6vw, 2.2rem);
+  }
+  .stage {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    gap: 0 0.9rem;
+    border-top: 1px solid var(--hair);
+    padding-top: 0.9rem;
+  }
+  .sn {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    padding-top: 0.15rem;
+  }
+  .sbody { min-width: 0; }
+  .st {
+    font-family: var(--font-mono);
+    font-size: var(--step-tag);
+    letter-spacing: 0.02em;
+    color: var(--text);
+    margin: 0 0 0.35rem;
+  }
+  .sd {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .svc-section { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  /* Its own scroll container. The page body must never scroll sideways. */
+  .svc-scroll {
+    margin-top: clamp(0.8rem, 2vw, 1.3rem);
+    overflow-x: auto;
+    border: 1px solid var(--hair);
+  }
+  .svc {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 480px;
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+  }
+  .svc th, .svc td {
+    text-align: left;
+    padding: 0.62rem 0.9rem;
+    border-bottom: 1px solid var(--hair);
+    vertical-align: top;
+  }
+  .svc th {
+    color: var(--text-dim);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: var(--step-eyebrow);
+    white-space: nowrap;
+  }
+  .svc td { color: var(--text-dim); }
+  .svc td:first-child { color: var(--text); white-space: nowrap; }
+  .svc tbody tr:last-child td { border-bottom: none; }
+  .svc .qn { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .proof { margin-top: clamp(2.5rem, 7vh, 4.5rem); }
+  .proof-body { max-width: 66ch; }
+  .proof-body p {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    margin-bottom: 1.3rem;
+    line-height: 1.75;
+  }
+  .proof-body .big {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-variation-settings: 'opsz' 72, 'wght' 500;
+    font-size: var(--step-h3);
+    letter-spacing: var(--ls-display);
+    line-height: 1.26;
+    color: var(--text);
+    margin-bottom: 1.4rem;
+  }
+  .proof-body p:last-child { margin-bottom: 0; }
+
+  .note {
+    margin-top: clamp(2.5rem, 7vh, 4rem);
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--hair-2);
+    background: color-mix(in srgb, var(--panel) 40%, transparent);
+  }
+  .note p {
+    font-family: var(--font-mono);
+    font-size: var(--step-small);
+    line-height: 1.7;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .rules, .funnel, .stages { grid-template-columns: 1fr; }
+  }
+</style>

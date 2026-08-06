@@ -158,9 +158,43 @@ export const projects = [
     // private — no public link
   },
   {
-    // Source: institution-engine/ in the AIS-OS repo. Placed second, directly under
-    // the featured system, because it is the deepest build on this page and the one
-    // whose design decisions are worth an interview question.
+    // Source: scripts/ in the AIS-OS repo — 52 Python modules, of which ~14 are this
+    // engine. Full as-built description at references/outreach-engine-architecture.md.
+    //
+    // EVERY FIGURE IS FROM THE REAL RUN ON 2026-08-06. 72 distinct owners for $0.126
+    // across six searches (2 niches x 3 states); 8-15 owners per search at ~$0.02;
+    // 4-7% is the measured LinkedIn hit rate on map-sourced leads. Nothing estimated.
+    //
+    // NOT THE SAME BUILD as the nonprofit lead engine below, and the ordering says so:
+    // that one reads public tax filings and ranks by financial distress, this one runs
+    // multi-source outbound with per-lead policy gating. Two systems, one discipline.
+    //
+    // VOICE: the engine enforces a constraint set personal to Mert. This site is read
+    // by recruiters and his standing instruction is neutral external material with the
+    // principle still fully applied — so it is a "policy gate" here and on the case
+    // study page. Every word true. Do not "clarify" it.
+    //
+    // `highlight`, not `featured`: FeaturedWork.astro takes the FIRST featured project
+    // and the AIS-OS entry above owns that slot. A second featured flag renders nowhere.
+    highlight: true,
+    title: 'Outreach engine',
+    short: 'Outreach Engine',
+    kind: 'System',
+    year: '2026',
+    role: 'Design + build',
+    tags: ['Python', 'Exa', 'Firecrawl', 'Google Places', 'ClickUp API', 'Claude API'],
+    summary:
+      'A multi-source prospecting engine across seventeen niches and fifty states. It finds business owners, proves each one is approachable and still trading before a human ever sees it, drafts the outreach from pages it actually read, and reads its own board back so nobody is contacted twice. Ten services, all wired as direct APIs.',
+    outcome: '72 verified owners for 13 cents, and it blocks the ones it should not contact.',
+    status: 'live',
+    art: { src: '/img/work/outreach-engine.png', label: 'OUTREACH ENGINE · SWEEP + GATE', ratio: '16 / 10', focus: 'center top' },
+    links: [{ label: 'Case study', href: '/work/outreach-engine' }],
+  },
+  {
+    // Source: institution-engine/ in the AIS-OS repo. Was placed second, directly under
+    // the featured system; the outreach engine above displaced it on 2026-08-06 because
+    // that build is larger. Still the one whose design decisions are worth an interview
+    // question.
     //
     // ANONYMISATION IS NOT OPTIONAL. Every figure below comes from
     // automations/aydiner-demo/florida-nonprofits-11-ANON.csv. No organisation
@@ -374,9 +408,13 @@ export const projects = [
   },
 ];
 
+// Only things actually used in a shipped build on this site. Exa, Firecrawl and the
+// Places API joined on 2026-08-06 with the outreach engine — three real integrations,
+// not padding.
 export const stack = [
   'Claude Code', 'Python', 'TypeScript', 'n8n', 'Trigger.dev', 'Next.js',
   'Vercel', 'Supabase', 'Claude API', 'Google Workspace API', 'ClickUp API',
+  'Exa', 'Firecrawl', 'Google Places API',
   'Astro', 'Prompt Engineering', 'Agentic Design', 'Stripe',
 ];
 
