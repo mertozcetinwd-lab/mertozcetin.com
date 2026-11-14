@@ -62,7 +62,7 @@ export default function Home() {
       <Band fade={false}>
         <Row split>
           <div className={cn(PAD, "flex flex-col justify-center lg:border-r lg:py-20")} style={{ borderColor: LINE }}>
-            <p className={cn(GeistMono.className, "co-in flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[#8D8D95]")} style={delay(40)}>
+            <p className={cn(GeistMono.className, "co-in flex h-4 items-center gap-2 text-[10px] uppercase leading-4 tracking-[0.16em] text-[#8D8D95]")} style={delay(40)}>
               <span className="co-blink size-1.5 bg-[#3B4BFF]" aria-hidden />
               Student / Builder / Founder
             </p>
