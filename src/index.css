@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Dark twin of the Client Optimal site: same grid, type, motion and blue, on near-black. */
+:root {
+  --bg: #0a0a0b;
+  --panel: #111113;
+  --line: rgba(255, 255, 255, 0.14);
+  --accent: #3b4bff;
+}
+
+html {
+  background: var(--bg);
+  scroll-behavior: smooth;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  color: #f5f5f7;
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+[id] {
+  scroll-margin-top: 16px;
+}
+::selection {
+  background: #0000ff;
+  color: #fff;
+}
+
+@keyframes co-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes co-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes co-word {
+  from { opacity: 0; transform: translateY(0.45em); }
+  to { opacity: 1; transform: none; }
+}
+.co-in { animation: co-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both; }
+.co-fade { animation: co-fade 0.9s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both; }
+.co-word {
+  display: inline-block;
+  animation: co-word 0.75s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
+}
+
+/* 8x8 tile of 1px diagonals, light lines for the dark theme */
+.co-hatch {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M-1 1l2-2M0 8l8-8M7 9l2-2' stroke='rgba(255%2C%20255%2C%20255%2C%200.09)' stroke-width='1' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+  background-repeat: repeat;
+}
+.co-hatch-dark {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3E%3Cpath d='M-1 1l2-2M0 8l8-8M7 9l2-2' stroke='rgba(255%2C%20255%2C%20255%2C%200.13)' stroke-width='1' stroke-linecap='square'/%3E%3C/svg%3E");
+  background-size: 8px 8px;
+}
+@keyframes co-hatch-drift { to { background-position: 8px 8px; } }
+.co-hatch-drift { animation: co-hatch-drift 2.4s linear infinite; }
+
+@keyframes co-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.co-blink { animation: co-blink 1.6s steps(2, jump-none) infinite; }
+
+/* Link underline that draws in on hover / focus / current page */
+.co-ul {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  padding-bottom: 3px;
+  transition: background-size 0.4s cubic-bezier(0.22, 1, 0.36, 1), color 0.15s;
+}
+.co-ul:hover, .co-ul:focus-visible, .co-ul[aria-current="page"] { background-size: 100% 1px; }
+
+/* Accent underline that draws itself once its text is in view */
+.co-mk {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 calc(100% - 0.11em);
+  background-size: 0% 0.055em;
+  padding-bottom: 0;
+  transition: background-size 1s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms);
+}
+.co-mk.on { background-size: 100% 0.055em; }
+.co-mk-w { background-image: linear-gradient(#fff, #fff); }
+
+.co-rule { transform: scaleX(0); transform-origin: left; transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms); }
+.co-rule.on { transform: scaleX(1); }
+
+@keyframes co-marquee { to { transform: translateX(-50%); } }
+.co-marquee { display: flex; width: max-content; animation: co-marquee 46s linear infinite; }
+.co-marquee-wrap:hover .co-marquee { animation-play-state: paused; }
+
+/* Card hover lift with an accent top edge */
+.co-lift { position: relative; transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s; }
+.co-lift::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--accent);
+  transform: scaleX(0); transform-origin: left; transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.co-lift:hover { transform: translateY(-2px); background-color: #141416; }
+.co-lift:hover::before { transform: scaleX(1); }
+
+/* Signal to introduction: one packet that fades in, travels, and fades out on arrival */
+@keyframes co-packet {
+  0% { opacity: 0; transform: translateX(0); animation-timing-function: ease-out; }
+  14% { opacity: 1; transform: translateX(0); animation-timing-function: cubic-bezier(0.65, 0, 0.35, 1); }
+  74% { opacity: 1; transform: translateX(208px); }
+  86%, 100% { opacity: 0; transform: translateX(208px); }
+}
+.co-packet { animation: co-packet 4s linear infinite; }
+@keyframes co-arrive {
+  0%, 70% { transform: scale(1); }
+  78% { transform: scale(1.22); }
+  90%, 100% { transform: scale(1); }
+}
+.co-arrive { transform-box: fill-box; transform-origin: center; animation: co-arrive 4s ease-in-out infinite; }
+
+/* List text: an accent underline draws in when the row is hovered */
+.co-li {
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0% 1px;
+  padding-bottom: 2px;
+  transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+li:hover > .co-li, li:hover .co-li, .co-li:hover { background-size: 100% 1px; }
+
+/* Footer wordmark: white fading down, fitted to the width */
+.co-wordmark {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.5) 55%, rgba(255, 255, 255, 0.06) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Native disclosure (FAQ): the plus turns into a minus */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details[open] .co-plus-v { opacity: 0; }
