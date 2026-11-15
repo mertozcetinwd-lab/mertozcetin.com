@@ -149,3 +149,17 @@ li:hover > .co-li, li:hover .co-li, .co-li:hover { background-size: 100% 1px; }
 details > summary { list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
 details[open] .co-plus-v { opacity: 0; }
+
+/* NDA explainer link (2026-11-15): a faint resting underline; on hover a full-strength line sweeps in from the left. */
+.nda-link {
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor),
+    linear-gradient(color-mix(in srgb, currentColor 35%, transparent), color-mix(in srgb, currentColor 35%, transparent));
+  background-repeat: no-repeat;
+  background-position: 0 100%, 0 100%;
+  background-size: 0% 1px, 100% 1px;
+  padding-bottom: 1px;
+  transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nda-link:hover, .nda-link:focus-visible { background-size: 100% 1px, 100% 1px; outline: none; }
+@media (prefers-reduced-motion: reduce) { .nda-link { transition: none; } }

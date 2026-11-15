@@ -8,7 +8,7 @@ import { cn } from "../lib/utils"
  * (those stay private) and it names no real party, so it never implies who signed what with whom.
  * Legal references were checked on 2026-11-15: FTC Endorsement Guides (16 CFR Part 255, revised June 2023), the FTC
  * Consumer Reviews and Testimonials Rule (16 CFR Part 465, in force October 21, 2024), Fla. Stat. 542.335 and ch. 688.
- * The NDA link goes to Cornell's Legal Information Institute (checked 200 on 2026-11-15), a neutral explainer.
+ * The NDA link goes to Wikipedia's NDA article (Cornell LII's page rendered empty for Mert, swapped 2026-11-15).
  * Keep the "not legal advice" line: this is general information for a visitor, not an opinion.
  */
 const CLAUSES: [string, string][] = [
@@ -40,7 +40,7 @@ export function NdaSample({ dark = false }: { dark?: boolean }) {
             <div className={cn("mt-4 max-w-[60ch] space-y-3 text-[13.5px] leading-[1.65]", body)}>
               <p>
                 A{" "}
-                <a href="https://www.law.cornell.edu/wex/nondisclosure_agreement" target="_blank" rel="noopener noreferrer" className={cn("underline decoration-1 underline-offset-2", accent)}>
+                <a href="https://en.wikipedia.org/wiki/Non-disclosure_agreement" target="_blank" rel="noopener noreferrer" className={cn("nda-link", accent)}>
                   non-disclosure agreement (NDA)
                 </a>{" "}
                 is a contract in which the parties agree to keep certain information private.
