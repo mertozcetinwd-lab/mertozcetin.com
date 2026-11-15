@@ -4,6 +4,7 @@ import { CaseCard, TalkCard } from "../components/cases"
 import { CountUp, Rule } from "../components/motion"
 import { FOCUS, GeistMono, LINE, Reveal } from "../components/primitives"
 import { cn } from "../lib/utils"
+import { NdaSample } from "../components/NdaSample"
 import { CASES, OUTCOME_TYPES, type Case } from "../data/cases"
 
 const FILTERS = ["All", ...OUTCOME_TYPES] as const
@@ -52,20 +53,8 @@ export default function CaseStudies() {
         </Row>
       </Band>
 
-      <Band>
-        <Row>
-          <div className="px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
-            <Reveal>
-              <p className={cn(GeistMono.className, "text-[10px] uppercase tracking-[0.16em] text-[#8D8D95]")}>
-                <span className="text-[#7C89FF]">Why</span> / NDA-signed
-              </p>
-              <p className="mt-4 max-w-[70ch] text-[13.5px] leading-[1.65] text-[#9A9AA3]">
-                The companies in these case studies shared their results under NDA terms. Their names are covered to protect their privacy, while the numbers and the process stay visible. Results vary. These examples are not a promise of any particular outcome.
-              </p>
-            </Reveal>
-          </div>
-        </Row>
-      </Band>
+      {/* Why names are covered + sample NDA clause (2026-11-15) */}
+      <NdaSample dark />
 
       <Band>
         <Row>
