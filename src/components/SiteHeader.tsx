@@ -6,7 +6,7 @@ import { ArrowUpRight, COMPANY, CtaCornerPluses, delay, FOCUS, GeistMono, GridPl
 
 export const NAV = [
   { label: "ABOUT", to: "/about" },
-  { label: "CLIENT OPTIMAL", to: "/client-optimal" },
+  { label: "CLIENT OPTIMAL", to: COMPANY }, // 2026-11-19 (Mert): every "Client Optimal" click goes to the real site
   { label: "CASE STUDIES", to: "/case-studies" },
   { label: "CONTACT", to: "/contact" },
 ] as const
@@ -59,7 +59,15 @@ export default function SiteHeader() {
         </Link>
 
         <nav className="co-in hidden h-11 items-center gap-x-7 border px-6 lg:flex xl:gap-x-9 xl:px-8" style={{ borderColor: LINE, ...delay(130) }} aria-label="Primary">
-          {NAV.map(({ label, to }) => (
+          {NAV.map(({ label, to }) => to.startsWith("http") ? (
+            <SmartLink
+              key={to}
+              to={to}
+              className={cn(GeistMono.className, "co-ul whitespace-nowrap text-[11px] font-normal uppercase tracking-[0.18em] text-[#8D8D95] transition-colors hover:text-white", FOCUS)}
+            >
+              {label}
+            </SmartLink>
+          ) : (
             <NavLink
               key={to}
               to={to}
@@ -129,6 +137,19 @@ export default function SiteHeader() {
           <ul className="divide-y" style={{ borderColor: LINE }}>
             {NAV.map(({ label, to }, i) => (
               <li key={to} style={{ borderColor: LINE }}>
+                {to.startsWith("http") ? (
+                  <SmartLink
+                    to={to}
+                    tabIndex={open ? 0 : -1}
+                    className={cn(GeistMono.className, "group flex items-center justify-between px-4 py-3.5 text-[11px] uppercase tracking-[0.18em] text-[#8D8D95] transition-colors hover:bg-[#141416] hover:text-[#7C89FF] sm:px-5", FOCUS)}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="text-[#7C89FF]/70">{String(i + 1).padStart(2, "0")}</span>
+                      {label}
+                    </span>
+                    <ArrowUpRight className="size-3.5 opacity-40 transition-opacity group-hover:opacity-100" />
+                  </SmartLink>
+                ) : (
                 <NavLink
                   to={to}
                   tabIndex={open ? 0 : -1}
@@ -147,6 +168,7 @@ export default function SiteHeader() {
                   </span>
                   <ArrowUpRight className="size-3.5 opacity-40 transition-opacity group-hover:opacity-100" />
                 </NavLink>
+                )}
               </li>
             ))}
             <li style={{ borderColor: LINE }}>

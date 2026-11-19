@@ -3,12 +3,11 @@ import { Route, Routes, useLocation } from "react-router-dom"
 import { Band } from "./components/blocks"
 import SiteFooter from "./components/SiteFooter"
 import SiteHeader from "./components/SiteHeader"
-import { GridPlus } from "./components/primitives"
+import { COMPANY, GridPlus } from "./components/primitives"
 import About from "./pages/About"
 import CaseStudies from "./pages/CaseStudies"
 import Contact from "./pages/Contact"
 import Home from "./pages/Home"
-import ClientOptimal from "./pages/ClientOptimal"
 
 const TITLES: Record<string, string> = {
   "/": "Mert Ozcetin | Founder of Client Optimal",
@@ -35,6 +34,11 @@ function ScrollAndTitle() {
   return null
 }
 
+function GoToCompany() {
+  useEffect(() => { window.location.replace(COMPANY) }, [])
+  return null
+}
+
 export default function App() {
   return (
     <>
@@ -47,7 +51,8 @@ export default function App() {
         </Band>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/client-optimal" element={<ClientOptimal />} />
+          {/* 2026-11-19 (Mert): "Client Optimal" always means the real site; old links to this path are sent there. */}
+          <Route path="/client-optimal" element={<GoToCompany />} />
           <Route path="/case-studies" element={<CaseStudies />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />

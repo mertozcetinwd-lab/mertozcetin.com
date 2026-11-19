@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
-import { Band, H2, Label, Lead, PAD, PrimaryLink, Row } from "../components/blocks"
-import { COMPANY, EMAIL, GeistMono, LINE, MAILTO, Reveal } from "../components/primitives"
+import { Band, H2, Label, Lead, PAD, PrimaryLink, Row, SmartLink } from "../components/blocks"
+import { CheckSquare, COMPANY, EMAIL, GeistMono, LINE, MAILTO, Reveal } from "../components/primitives"
 import { cn } from "../lib/utils"
 
 /*
@@ -29,6 +29,7 @@ const STEPS = [
 const SIDES = [
   {
     side: "Suppliers",
+    title: "You have room for more work.",
     items: [
       "Companies that sell to other businesses",
       "Have room to take on more work",
@@ -37,6 +38,7 @@ const SIDES = [
   },
   {
     side: "Buyers",
+    title: "You have a need to fill.",
     items: [
       "Companies with a live need: a new site, a new contract or a gap in suppliers",
       "Want a suitable option without running a search",
@@ -84,14 +86,16 @@ export default function Home() {
               </h1>
               <p className="mt-6 max-w-[50ch] text-[15px] leading-[1.65] text-[#9A9AA3] sm:text-[16px]">
                 I run{" "}
-                <Link to="/client-optimal" className={UL}>Client Optimal</Link>, an introduction company, and I study
+                <SmartLink to={COMPANY} className={UL}>Client Optimal</SmartLink>, an introduction company, and I study
                 computer science at the University of Florida (<Link to="/about" className={UL}>my story</Link>). If
                 you got an email from me, it was really me, and replying to it is the quickest way to reach me.
               </p>
               <div className="mt-8 -m-[7px] flex flex-wrap items-center gap-y-4 p-[7px]">
-                <PrimaryLink to={MAILTO}>Reply by email</PrimaryLink>
-              
-                <Link to="/case-studies" className={cn(UL, "ml-6 text-[14px]")}>See client case studies</Link>
+                {/* 2026-11-19 (Mert): the emails link here, not to clientoptimal.com (that domain is on a URL
+                    blocklist, and a listed link in an email body sends it to spam). So the hero's main job is to
+                    hand the reader to the business; replying stays one click away. */}
+                <PrimaryLink to={COMPANY}>See how Client Optimal works</PrimaryLink>
+                <a href={MAILTO} className={cn(UL, "text-[14px] sm:ml-6")}>Or reply by email</a>
               </div>
             </Reveal>
           </div>
@@ -122,9 +126,8 @@ export default function Home() {
             ))}
           </ol>
           <p className="border-t px-4 py-5 text-[13.5px] text-[#9A9AA3] sm:px-6 lg:px-10" style={{ borderColor: LINE }}>
-            More on the method on the{" "}
-            <Link to="/client-optimal" className={UL}>Client Optimal page</Link>, or at{" "}
-            <a href={COMPANY} className={UL}>clientoptimal.com</a>.
+            More on the method at{" "}
+            <SmartLink to={COMPANY} className={UL}>clientoptimal.com</SmartLink>.
           </p>
         </Row>
       </Band>
@@ -139,15 +142,25 @@ export default function Home() {
               <Lead>A supplier with capacity and a buyer with a need, across industries.</Lead>
             </Reveal>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2">
+          {/* 2026-11-19 (Mert): this block read as a loose list with dead space under it. Now each side has a
+              numbered label, a one-line heading and check marks, with a top rule when the columns stack. */}
+          <div className="grid grid-cols-1 border-t sm:grid-cols-2 lg:border-t-0" style={{ borderColor: LINE }}>
             {SIDES.map((s, i) => (
-              <div key={s.side} className={cn("px-4 py-8 sm:px-6 lg:px-9 lg:py-12", i === 0 && "border-b sm:border-b-0 sm:border-r")} style={{ borderColor: LINE }}>
-                <p className={cn(GeistMono.className, "text-[11px] uppercase tracking-[0.12em] text-[#7C89FF]")}>{s.side}</p>
-                <ul className="mt-4 space-y-3">
-                  {s.items.map((t) => (
-                    <li key={t} className="text-[14px] leading-[1.55] text-[#9A9AA3]">{t}</li>
-                  ))}
-                </ul>
+              <div key={s.side} className={cn("flex flex-col px-4 py-8 sm:px-6 lg:px-9 lg:py-12", i === 0 && "border-b sm:border-b-0 sm:border-r")} style={{ borderColor: LINE }}>
+                <Reveal delayMs={i * 90}>
+                  <p className={cn(GeistMono.className, "text-[11px] uppercase tracking-[0.12em] text-[#7C89FF]")}>
+                    {String(i + 1).padStart(2, "0")} / {s.side}
+                  </p>
+                  <h3 className="mt-4 max-w-[18ch] text-[1.15rem] font-medium uppercase leading-[1.1] tracking-[-0.02em] text-white">{s.title}</h3>
+                  <ul className="mt-6 space-y-3.5">
+                    {s.items.map((t) => (
+                      <li key={t} className="flex gap-3 text-[14px] leading-[1.55] text-[#9A9AA3]">
+                        <CheckSquare className="mt-[0.4em] size-3 shrink-0 text-[#7C89FF]" />
+                        <span>{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
               </div>
             ))}
           </div>
